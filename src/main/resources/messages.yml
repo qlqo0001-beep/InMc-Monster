@@ -1,0 +1,50 @@
+# inmc-monster 메시지
+# MiniMessage 태그와 &a 형태의 색상 코드를 함께 쓸 수 있습니다.
+# 치환자: {몬스터} {플레이어네임} {레벨} {체력} {최대체력} {페이즈} {좌표} {개수} {시간} {아이템}
+
+prefix: "<gradient:#c62828:#ff8a65>[ 몬스터 ]</gradient> "
+
+no-permission: "<red>권한이 없습니다.</red>"
+player-only: "<red>이 명령어는 플레이어만 사용할 수 있습니다.</red>"
+not-ready: "<gray>플러그인이 아직 준비 중입니다. 잠시 후 다시 시도해주세요.</gray>"
+usage: "<gray>/몹 <white>[gui|소환|목록|생성|삭제|복제|정리|상태|리로드]</white></gray>"
+
+reloading: "<gray>설정을 다시 읽는 중...</gray>"
+reloaded: "<green>설정을 다시 읽었습니다. <gray>(몬스터 {개수}종)</gray></green>"
+reload-menu-closed: "<gray>설정을 다시 읽어 열려 있던 창을 닫았습니다. 다시 열어주세요.</gray>"
+
+mob-unknown: "<red>'{몬스터}' 이라는 몬스터를 찾을 수 없습니다.</red>"
+mob-created: "<green>'{몬스터}' 몬스터를 만들었습니다.</green>"
+mob-exists: "<red>'{몬스터}' 몬스터가 이미 존재합니다.</red>"
+mob-invalid-name: "<red>몬스터 이름은 한글/영문/숫자/_/- 만 사용할 수 있습니다. (32자 이내)</red>"
+mob-deleted: "<yellow>'{몬스터}' 몬스터를 삭제했습니다.</yellow>"
+mob-copied: "<green>'{몬스터}' 을(를) 복제했습니다.</green>"
+mob-copy-failed: "<red>몬스터를 복제하지 못했습니다. 콘솔 로그를 확인해주세요.</red>"
+mob-disabled: "<red>'{몬스터}' 은(는) 비활성화 상태입니다.</red>"
+
+spawn-success: "<green>'{몬스터}' 을(를) {좌표} 에 소환했습니다. <gray>({개수}마리)</gray></green>"
+spawn-failed: "<red>몬스터를 소환하지 못했습니다. 엔티티 타입이나 위치를 확인해주세요.</red>"
+spawn-budget-full: "<red>스폰 한도에 도달했습니다. <gray>(/몹 상태 로 확인)</gray></red>"
+spawn-world-disabled: "<red>이 월드에서는 커스텀 몬스터가 비활성화되어 있습니다.</red>"
+
+cleanup-done: "<yellow>커스텀 몬스터 {개수}마리를 제거했습니다.</yellow>"
+cleanup-usage: "<gray>사용법: <white>/몹 정리 [전체|월드이름|몹이름|태그]</white></gray>"
+
+boss-bar: "<red>{몬스터}</red> <gray>|</gray> <white>{페이즈}</white>"
+nameplate: "<white>{몬스터}</white> <gray>[<red>{체력}</red>/<red>{최대체력}</red>]</gray>"
+nameplate-level: "<dark_gray>Lv.</dark_gray><yellow>{레벨}</yellow> "
+
+mob-spawn-announce: "<gold>★</gold> <red>{몬스터}</red><gray>이(가) </gray><white>{좌표}</white><gray>에 나타났습니다!</gray>"
+mob-death-announce: "<gold>★</gold> <yellow>{플레이어네임}</yellow><gray>님이 </gray><red>{몬스터}</red><gray>을(를) 처치했습니다!</gray>"
+drop-announce: "<gold>★</gold> <yellow>{플레이어네임}</yellow><gray>님이 </gray><red>{몬스터}</red><gray>에게서 </gray><aqua>{아이템}</aqua><gray>을(를) 획득했습니다!</gray>"
+phase-change: "<red>{몬스터}</red><gray>이(가) </gray><yellow>{페이즈}</yellow><gray> 단계에 들어섰습니다!</gray>"
+
+drop-inventory-full: "<yellow>인벤토리가 가득 차서 일부 아이템을 바닥에 떨어뜨렸습니다.</yellow>"
+drop-protected: "<gray>이 아이템은 아직 다른 플레이어가 주울 수 없습니다.</gray>"
+
+respawn-warning: "<yellow>{몬스터}</yellow><gray>이(가) </gray><white>{시간}</white><gray> 후에 등장합니다.</gray>"
+
+prompt-cancelled: "<gray>입력을 취소했습니다.</gray>"
+prompt-timeout: "<gray>입력 시간이 초과되었습니다.</gray>"
+prompt-invalid-number: "<red>숫자를 입력해주세요.</red>"
+prompt-enter: "<yellow>채팅으로 값을 입력하세요. <gray>('취소' 입력 시 중단)</gray></yellow>"

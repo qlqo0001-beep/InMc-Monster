@@ -1,0 +1,168 @@
+# 예시 몬스터 - 대부분의 값은 /몹 GUI 에서 편집할 수 있습니다.
+# MiniMessage 형식: https://webui.advntr.dev/
+
+id: example
+display: "<dark_red>부패한 기사</dark_red>"
+enabled: false
+type: ZOMBIE
+
+# ModelEngine R4 블루프린트 ID. 비워두면 바닐라 외형입니다.
+model: ''
+
+stats:
+  MAX_HEALTH: 200.0
+  ATTACK_DAMAGE: 14.0
+  MOVEMENT_SPEED: 0.28
+  ARMOR: 10.0
+  KNOCKBACK_RESISTANCE: 0.4
+  FOLLOW_RANGE: 32.0
+  SCALE: 1.2
+
+custom-stats:
+  CRITICAL_STRIKE_CHANCE: 15.0
+  CRITICAL_STRIKE_POWER: 60.0
+  ARMOR_PENETRATION: 20.0
+
+level:
+  base: 10
+  min: 10
+  max: 40
+  source: DISTANCE_FROM_SPAWN
+  step: 250.0
+  per-level:
+    MAX_HEALTH: 8.0
+    ATTACK_DAMAGE: 5.0
+
+flags:
+  baby: false
+  silent: false
+  burn-in-sunlight: false
+  boss-bar: true
+  target-players-only: true
+  remove-when-far-away: true
+  lifespan-seconds: 0
+
+immunities:
+  knockback-resistance: 0.5
+  fall: true
+  drowning: true
+
+# 장비. MMOItems 아이템은 mmoitems:타입:아이디 형식으로 지정합니다.
+# drop-chance 는 기본 0 입니다 - 몬스터에게 입힌 고급 장비가 그대로 필드에 풀리면
+# 경제가 무너지기 때문입니다.
+equipment:
+  hand:
+    item: 'minecraft:iron_sword'
+    mode: REFERENCE
+    material: 'minecraft:iron_sword'
+    drop-chance: 0.0
+  head:
+    item: 'minecraft:iron_helmet'
+    mode: REFERENCE
+    material: 'minecraft:iron_helmet'
+    drop-chance: 0.0
+
+drops:
+  min-rolls: 0
+  max-rolls: 2
+  distribution: TOP_DAMAGE
+  require-player-kill: true
+  protect-seconds: 8
+  chance-multiplier: 1.0
+  keep-vanilla-drops: false
+  exp:
+    min: 50
+    max: 120
+  entries:
+    '0':
+      item: 'minecraft:diamond'
+      mode: REFERENCE
+      material: 'minecraft:diamond'
+      chance: 12.5
+      min-amount: 1
+      max-amount: 3
+      announce: true
+
+affixes:
+  enabled: true
+  chance: -1.0
+  max-prefix: -1
+  max-suffix: -1
+
+# 자연 스폰 치환 설정.
+# enabled 를 켜면 NATURAL 스폰의 좀비가 확률적으로 이 몬스터로 바뀝니다.
+replacement:
+  enabled: false
+  chance: 3.0
+  weight: 10
+  replaces: []
+  rules:
+    min-y: -64
+    max-y: 320
+    time: NIGHT
+    weather: ANY
+    sky: ANY
+    allow-in-claims: false
+
+skills:
+  '0':
+    skill: ground_slam
+    trigger: ON_TIMER
+    selector: SELF
+    cooldown-ticks: 160
+    chance: 100.0
+    radius: 6.0
+    cast-time-ticks: 20
+    interrupt-on-damage: false
+    enabled: true
+    values:
+      damage: 14.0
+      radius: 6.0
+      launch: 0.8
+  '1':
+    skill: enrage
+    trigger: ON_LOW_HEALTH
+    selector: SELF
+    cooldown-ticks: 200
+    chance: 100.0
+    health-threshold: 35.0
+    enabled: true
+    values:
+      damage-multiplier: 1.5
+      duration: 300
+
+phases:
+  '0':
+    name: 1페이즈
+    health-above: 50.0
+    loop: true
+    skill-power: 1.0
+  '1':
+    name: 광폭
+    health-above: 0.0
+    loop: true
+    skill-power: 1.3
+    stat-multipliers:
+      ATTACK_DAMAGE: 1.25
+    on-enter:
+      '0':
+        type: BROADCAST
+        chance: 100.0
+        require-player-kill: false
+        enabled: true
+        values:
+          message: '<red>{몬스터}</red><gray>이(가) 광폭화한다!</gray>'
+          scope: RADIUS
+          style: TITLE
+          radius: 32.0
+
+death-actions:
+  '0':
+    type: BROADCAST
+    chance: 100.0
+    require-player-kill: true
+    enabled: true
+    values:
+      message: '<gold>{플레이어네임}</gold><gray> 님이 </gray><red>{몬스터}</red><gray> 을(를) 쓰러뜨렸다!</gray>'
+      scope: SERVER
+      style: CHAT

@@ -1,0 +1,65 @@
+name: inmc-monster
+version: '${version}'
+main: com.inmc.monster.MonsterPlugin
+api-version: '26.1'
+description: 커스텀 몬스터 - 스탯·장비·드랍·스킬·패턴·스폰을 GUI 로 관리하며 바닐라 자연스폰은 그대로 유지합니다
+authors: [ INMC ]
+
+# load: OMIT on purpose.
+#
+# Declaring BEFORE for every integration made Paper report a plugin dependency cycle on the
+# random-box plugin and break it by silently dropping one of our edges - which cost us classpath
+# access to ItemsAdder. None of these are needed at load time: every hook is resolved
+# reflectively through the owning plugin's own classloader, and SessionListener re-probes
+# whenever one of them enables, so load order does not matter at all.
+dependencies:
+  server:
+    Vault:
+      load: OMIT
+      required: false
+      join-classpath: true
+    PlaceholderAPI:
+      load: OMIT
+      required: false
+      join-classpath: true
+    MMOItems:
+      load: OMIT
+      required: false
+      join-classpath: true
+    MythicLib:
+      load: OMIT
+      required: false
+      join-classpath: true
+    BetterModel:
+      load: OMIT
+      required: false
+      join-classpath: true
+    ModelEngine:
+      load: OMIT
+      required: false
+      join-classpath: true
+    MythicMobs:
+      load: OMIT
+      required: false
+      join-classpath: true
+    MagicSpells:
+      load: OMIT
+      required: false
+      join-classpath: true
+    WorldGuard:
+      load: OMIT
+      required: false
+      join-classpath: true
+    Lands:
+      load: OMIT
+      required: false
+      join-classpath: true
+    ItemsAdder:
+      load: OMIT
+      required: false
+      join-classpath: true
+
+permissions:
+  monster.admin:
+    description: Full administrative access to inmc-monster
+    default: op
