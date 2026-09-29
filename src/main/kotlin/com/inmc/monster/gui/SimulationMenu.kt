@@ -5,8 +5,10 @@ import com.inmc.monster.mob.LootRoller
 import com.inmc.monster.mob.MobDefinition
 import com.inmc.monster.mob.MobDrop
 import com.inmc.monster.mob.Weighted
-import com.inmc.monster.util.Numbers
-import com.inmc.monster.util.Text
+import kr.inmc.core.gui.Editors
+import kr.inmc.core.gui.Icon
+import kr.inmc.core.util.Numbers
+import kr.inmc.core.util.Text
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import java.util.Random

@@ -7,7 +7,7 @@ import com.inmc.monster.mob.MobDefinition
 import com.inmc.monster.runtime.ActiveMob
 import com.inmc.monster.skill.SkillTrigger
 import com.inmc.monster.util.Ph
-import com.inmc.monster.util.Text
+import kr.inmc.core.util.Text
 import org.bukkit.Location
 import org.bukkit.entity.Ageable
 import org.bukkit.entity.EntityType
@@ -189,6 +189,7 @@ class SpawnService(private val monsters: Monsters) {
         applyFlags(entity, definition)
         monsters.statResolver.applyTo(entity, stats)
         definition.equipment.applyTo(entity, monsters.itemResolver)
+        com.inmc.monster.mob.MonsterRoles.equip(entity, definition, monsters.itemResolver)
 
         val display = AffixRoller.decorate(
             Text.plain(Text.render(definition.displayName)).ifBlank { definition.id },

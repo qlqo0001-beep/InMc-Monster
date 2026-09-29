@@ -5,8 +5,10 @@ import com.inmc.monster.spawn.SkyRule
 import com.inmc.monster.spawn.SpawnRules
 import com.inmc.monster.spawn.TimeRule
 import com.inmc.monster.spawn.WeatherRule
-import com.inmc.monster.util.Numbers
-import com.inmc.monster.util.Text
+import kr.inmc.core.gui.Editors
+import kr.inmc.core.gui.Icon
+import kr.inmc.core.util.Numbers
+import kr.inmc.core.util.Text
 import org.bukkit.Material
 import org.bukkit.entity.Player
 
@@ -108,7 +110,7 @@ class SpawnRulesMenu(
             if (Editors.isPrompt(event) && rules.time == TimeRule.CUSTOM) {
                 val player = event.whoClicked as? Player ?: return@set
                 Editors.promptText(
-                    monsters, player, "시간 범위를 입력하세요.",
+                    monsters.prompts, player, "시간 범위를 입력하세요.",
                     listOf(
                         "<gray>형식: <white>시작 끝</white>  (0 ~ 24000 틱)</gray>",
                         "<gray>예: <white>13000 23000</white> (밤)</gray>",
@@ -196,7 +198,7 @@ class SpawnRulesMenu(
         ) { event ->
             val player = event.whoClicked as? Player ?: return@set
             Editors.promptText(
-                monsters, player, "밟고 설 블록 종류를 입력하세요. (쉼표로 여러 개)",
+                monsters.prompts, player, "밟고 설 블록 종류를 입력하세요. (쉼표로 여러 개)",
                 listOf(
                     "<gray>예: <white>GRASS_BLOCK, SAND, STONE</white></gray>",
                     "<gray>'없음' 을 입력하면 제한을 지웁니다.</gray>",
@@ -337,7 +339,7 @@ class SpawnRulesMenu(
         ) { event ->
             val player = event.whoClicked as? Player ?: return@set
             Editors.promptText(
-                monsters, player, "허용할 달 위상을 입력하세요. (0~7, 쉼표로 여러 개)",
+                monsters.prompts, player, "허용할 달 위상을 입력하세요. (0~7, 쉼표로 여러 개)",
                 listOf("<gray>'없음' 을 입력하면 제한을 지웁니다.</gray>"),
                 reopen = { reopen(player) },
             ) { input ->
@@ -376,7 +378,7 @@ class SpawnRulesMenu(
     ) {
         val player = event.whoClicked as? Player ?: return
         Editors.promptText(
-            monsters, player, label + " 을(를) 입력하세요. (쉼표로 여러 개)",
+            monsters.prompts, player, label + " 을(를) 입력하세요. (쉼표로 여러 개)",
             listOf(
                 "<gray>현재: " + (if (current.isEmpty()) "없음" else current.joinToString(", ")) + "</gray>",
                 "<gray>'없음' 을 입력하면 제한을 지웁니다.</gray>",

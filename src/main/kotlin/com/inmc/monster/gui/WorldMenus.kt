@@ -2,8 +2,11 @@ package com.inmc.monster.gui
 
 import com.inmc.monster.Monsters
 import com.inmc.monster.config.WorldSettings
-import com.inmc.monster.util.Numbers
-import com.inmc.monster.util.Text
+import kr.inmc.core.gui.Editors
+import kr.inmc.core.gui.Icon
+import kr.inmc.core.gui.Paging
+import kr.inmc.core.util.Numbers
+import kr.inmc.core.util.Text
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.entity.Player
@@ -24,10 +27,10 @@ class WorldListMenu(
         fillEmpty(Icon.EDGE)
 
         val worlds = Bukkit.getWorlds()
-        val pages = maxOf(1, (worlds.size + CONTENT - 1) / CONTENT)
+        val pages = Paging.pageCount(worlds.size, CONTENT)
         page = page.coerceIn(0, pages - 1)
 
-        worlds.drop(page * CONTENT).take(CONTENT).forEachIndexed { index, world ->
+        Paging.slice(worlds, page, CONTENT).forEachIndexed { index, world ->
             val settings = monsters.worlds.of(world)
             set(index, iconFor(world, settings)) { event ->
                 (event.whoClicked as? Player)?.let { WorldDetailMenu(monsters, settings.world, page).open(it) }
@@ -36,9 +39,9 @@ class WorldListMenu(
 
         for (slot in CONTENT until 54) set(slot, Icon.EDGE)
 
-        set(45, Icon.back()) { event -> (event.whoClicked as? Player)?.let { MainMenu(monsters).open(it) } }
-        if (page > 0) set(46, Icon.prevPage()) { event -> switch(event.whoClicked, page - 1) }
-        if (page < pages - 1) set(47, Icon.nextPage()) { event -> switch(event.whoClicked, page + 1) }
+        set(Paging.SLOT_BACK, Icon.back()) { event -> (event.whoClicked as? Player)?.let { MainMenu(monsters).open(it) } }
+        if (page > 0) set(Paging.SLOT_PREV, Icon.prevPage()) { event -> switch(event.whoClicked, page - 1) }
+        if (page < pages - 1) set(Paging.SLOT_NEXT, Icon.nextPage()) { event -> switch(event.whoClicked, page + 1) }
 
         set(
             51,
@@ -322,7 +325,7 @@ class WorldDetailMenu(
             redraw(event.whoClicked)
         }
 
-        set(45, Icon.back()) { event ->
+        set(Paging.SLOT_BACK, Icon.back()) { event ->
             (event.whoClicked as? Player)?.let { WorldListMenu(monsters, returnPage).open(it) }
         }
         set(53, Icon.close()) { event -> event.whoClicked.closeInventory() }
@@ -336,7 +339,7 @@ class WorldDetailMenu(
     ) {
         val player = event.whoClicked as? Player ?: return
         Editors.promptText(
-            monsters, player, label + " 이름을 입력하세요. (쉼표로 여러 개)",
+            monsters.prompts, player, label + " 이름을 입력하세요. (쉼표로 여러 개)",
             listOf(
                 "<gray>현재: " + (if (current.isEmpty()) "없음" else current.joinToString(", ")) + "</gray>",
                 "<gray>'없음' 을 입력하면 목록을 지웁니다.</gray>",

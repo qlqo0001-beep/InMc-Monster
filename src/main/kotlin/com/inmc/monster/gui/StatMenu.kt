@@ -4,8 +4,10 @@ import com.inmc.monster.Monsters
 import com.inmc.monster.mob.MobDefinition
 import com.inmc.monster.mob.StatKeys
 import com.inmc.monster.mob.StatUnit
-import com.inmc.monster.util.Numbers
-import com.inmc.monster.util.Text
+import kr.inmc.core.gui.Editors
+import kr.inmc.core.gui.Icon
+import kr.inmc.core.util.Numbers
+import kr.inmc.core.util.Text
 import org.bukkit.Material
 import org.bukkit.entity.Player
 
@@ -93,7 +95,7 @@ class StatMenu(
                 if (Editors.isPrompt(event)) {
                     player?.let {
                         Editors.promptDouble(
-                            monsters, it, StatKeys.vanillaLabel(key), 0.0, 100_000.0, { reopen(it) },
+                            monsters.prompts, it, StatKeys.vanillaLabel(key), 0.0, 100_000.0, { reopen(it) },
                         ) { value ->
                             definition.stats[key] = value
                             save()
@@ -144,7 +146,7 @@ class StatMenu(
                 val player = event.whoClicked as? Player
                 if (Editors.isPrompt(event)) {
                     player?.let {
-                        Editors.promptDouble(monsters, it, stat.label, stat.min, stat.max, { reopen(it) }) { value ->
+                        Editors.promptDouble(monsters.prompts, it, stat.label, stat.min, stat.max, { reopen(it) }) { value ->
                             definition.customStats[stat.key] = value
                             save()
                         }

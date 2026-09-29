@@ -1,6 +1,7 @@
 package com.inmc.monster.integration
 
 import com.inmc.monster.spawn.RegionCheck
+import kr.inmc.core.integration.PluginClasses
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import java.lang.reflect.Method

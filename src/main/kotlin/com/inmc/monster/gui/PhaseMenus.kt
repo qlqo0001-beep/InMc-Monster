@@ -5,8 +5,10 @@ import com.inmc.monster.mob.MobDefinition
 import com.inmc.monster.mob.StatMap
 import com.inmc.monster.pattern.Phase
 import com.inmc.monster.pattern.PatternStep
-import com.inmc.monster.util.Numbers
-import com.inmc.monster.util.Text
+import kr.inmc.core.gui.Editors
+import kr.inmc.core.gui.Icon
+import kr.inmc.core.util.Numbers
+import kr.inmc.core.util.Text
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.ClickType
@@ -59,7 +61,7 @@ class PhaseListMenu(
         ) { event ->
             val player = event.whoClicked as? Player ?: return@set
             Editors.promptText(
-                monsters, player, "페이즈 이름을 입력하세요.",
+                monsters.prompts, player, "페이즈 이름을 입력하세요.",
                 listOf("<dark_gray>예: 1페이즈, 광폭, 최후의발악</dark_gray>"),
                 reopen = { reopen(player) },
             ) { input ->
@@ -149,7 +151,7 @@ class PhaseDetailMenu(
         ) { event ->
             if (Editors.isPrompt(event)) {
                 val player = event.whoClicked as? Player ?: return@set
-                Editors.promptDouble(monsters, player, "진입 체력", 0.0, 100.0, { reopen(player) }) {
+                Editors.promptDouble(monsters.prompts, player, "진입 체력", 0.0, 100.0, { reopen(player) }) {
                     phase.healthAbove = it
                     save()
                 }
@@ -192,7 +194,7 @@ class PhaseDetailMenu(
         ) { event ->
             val player = event.whoClicked as? Player ?: return@set
             Editors.promptText(
-                monsters, player, "스탯과 배율을 입력하세요.",
+                monsters.prompts, player, "스탯과 배율을 입력하세요.",
                 listOf(
                     "<gray>형식: <white>스탯이름 배율</white>  (여러 개는 | 로 구분)</gray>",
                     "<gray>예: <white>ATTACK_DAMAGE 1.25|MOVEMENT_SPEED 1.2</white></gray>",
@@ -240,7 +242,7 @@ class PhaseDetailMenu(
                 return@set
             }
             Editors.promptText(
-                monsters, player, "교체할 모델 ID 를 입력하세요.",
+                monsters.prompts, player, "교체할 모델 ID 를 입력하세요.",
                 listOf("<dark_gray>예: corrupted_knight_rage</dark_gray>"),
                 reopen = { reopen(player) },
             ) { input ->
@@ -390,7 +392,7 @@ class PatternMenu(
         ) { event ->
             val player = event.whoClicked as? Player ?: return@set
             Editors.promptText(
-                monsters, player, "시전할 스킬 ID 를 입력하세요.",
+                monsters.prompts, player, "시전할 스킬 ID 를 입력하세요.",
                 listOf(
                     "<gray>사용 가능: " + monsters.skills.registry.ids().take(10).joinToString(", ") + "</gray>",
                 ),
@@ -449,7 +451,7 @@ class PatternMenu(
 
     private fun promptSkill(player: Player, step: PatternStep) {
         Editors.promptText(
-            monsters, player, "시전할 스킬 ID 를 입력하세요.",
+            monsters.prompts, player, "시전할 스킬 ID 를 입력하세요.",
             listOf("<gray>사용 가능: " + monsters.skills.registry.ids().take(10).joinToString(", ") + "</gray>"),
             reopen = { reopen(player) },
         ) { input ->

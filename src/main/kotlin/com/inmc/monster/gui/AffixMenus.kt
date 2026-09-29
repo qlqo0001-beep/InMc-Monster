@@ -7,8 +7,12 @@ import com.inmc.monster.affix.AffixTarget
 import com.inmc.monster.affix.AffixType
 import com.inmc.monster.affix.StatModifier
 import com.inmc.monster.mob.MobDefinition
-import com.inmc.monster.util.Numbers
-import com.inmc.monster.util.Text
+import kr.inmc.core.gui.ConfirmMenu
+import kr.inmc.core.gui.Editors
+import kr.inmc.core.gui.Icon
+import kr.inmc.core.gui.Paging
+import kr.inmc.core.util.Numbers
+import kr.inmc.core.util.Text
 import org.bukkit.Material
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.Player
@@ -31,10 +35,10 @@ class AffixListMenu(
         fillEmpty(Icon.EDGE)
 
         val all = monsters.affixes.all()
-        val pages = maxOf(1, (all.size + CONTENT - 1) / CONTENT)
+        val pages = Paging.pageCount(all.size, CONTENT)
         page = page.coerceIn(0, pages - 1)
 
-        all.drop(page * CONTENT).take(CONTENT).forEachIndexed { index, affix ->
+        Paging.slice(all, page, CONTENT).forEachIndexed { index, affix ->
             set(index, iconFor(affix)) { event ->
                 val player = event.whoClicked as? Player ?: return@set
                 when (event.click) {
@@ -63,9 +67,9 @@ class AffixListMenu(
 
         for (slot in CONTENT until 54) set(slot, Icon.EDGE)
 
-        set(45, Icon.back()) { event -> (event.whoClicked as? Player)?.let { MainMenu(monsters).open(it) } }
-        if (page > 0) set(46, Icon.prevPage()) { event -> switch(event.whoClicked, page - 1) }
-        if (page < pages - 1) set(47, Icon.nextPage()) { event -> switch(event.whoClicked, page + 1) }
+        set(Paging.SLOT_BACK, Icon.back()) { event -> (event.whoClicked as? Player)?.let { MainMenu(monsters).open(it) } }
+        if (page > 0) set(Paging.SLOT_PREV, Icon.prevPage()) { event -> switch(event.whoClicked, page - 1) }
+        if (page < pages - 1) set(Paging.SLOT_NEXT, Icon.nextPage()) { event -> switch(event.whoClicked, page + 1) }
 
         set(
             49,
@@ -78,7 +82,7 @@ class AffixListMenu(
         ) { event ->
             val player = event.whoClicked as? Player ?: return@set
             Editors.promptText(
-                monsters, player, "수식어 이름을 입력하세요.",
+                monsters.prompts, player, "수식어 이름을 입력하세요.",
                 listOf(
                     "<gray>한글/영문/숫자/_/- 24자 이내</gray>",
                     "<dark_gray>예: 강력한, 날쌘, 욕심많은</dark_gray>",
@@ -212,7 +216,7 @@ class AffixDetailMenu(
         ) { event ->
             val player = event.whoClicked as? Player ?: return@set
             Editors.promptText(
-                monsters, player, "표시할 문구를 입력하세요.",
+                monsters.prompts, player, "표시할 문구를 입력하세요.",
                 listOf("<dark_gray>예: &c강력한   또는   <red>강력한</red></dark_gray>"),
                 reopen = { reopen(player) },
             ) { input ->
@@ -290,7 +294,7 @@ class AffixDetailMenu(
         ) { event ->
             val player = event.whoClicked as? Player ?: return@set
             Editors.promptText(
-                monsters, player, "허용할 엔티티 종류를 입력하세요. (쉼표로 여러 개)",
+                monsters.prompts, player, "허용할 엔티티 종류를 입력하세요. (쉼표로 여러 개)",
                 listOf(
                     "<gray>예: <white>ZOMBIE, SKELETON, SPIDER</white></gray>",
                     "<gray>'없음' 을 입력하면 제한을 지웁니다.</gray>",
@@ -325,7 +329,7 @@ class AffixDetailMenu(
         ) { event ->
             val player = event.whoClicked as? Player ?: return@set
             Editors.promptText(
-                monsters, player, "허용할 월드를 입력하세요. (쉼표로 여러 개)",
+                monsters.prompts, player, "허용할 월드를 입력하세요. (쉼표로 여러 개)",
                 listOf("<gray>'없음' 을 입력하면 제한을 지웁니다.</gray>"),
                 reopen = { reopen(player) },
             ) { input ->
@@ -362,7 +366,7 @@ class AffixDetailMenu(
         ) { event ->
             val player = event.whoClicked as? Player ?: return@set
             Editors.promptText(
-                monsters, player, "능력치 변화를 입력하세요.",
+                monsters.prompts, player, "능력치 변화를 입력하세요.",
                 listOf(
                     "<gray>형식: <white>스탯 mult 값</white> 또는 <white>스탯 add 값</white></gray>",
                     "<gray>여러 개는 | 로 구분합니다.</gray>",
@@ -478,7 +482,7 @@ class AffixDetailMenu(
             save(); redraw(event.whoClicked)
         }
 
-        set(45, Icon.back()) { event ->
+        set(Paging.SLOT_BACK, Icon.back()) { event ->
             (event.whoClicked as? Player)?.let { AffixListMenu(monsters, returnPage).open(it) }
         }
         set(53, Icon.close()) { event -> event.whoClicked.closeInventory() }
@@ -635,7 +639,7 @@ class MobAffixMenu(
     ) {
         val player = event.whoClicked as? Player ?: return
         Editors.promptText(
-            monsters, player, label + " 이름을 입력하세요. (쉼표로 여러 개)",
+            monsters.prompts, player, label + " 이름을 입력하세요. (쉼표로 여러 개)",
             listOf(
                 "<gray>등록된 수식어: " + monsters.affixes.all().take(8).joinToString(", ") { it.id } + "</gray>",
                 "<gray>현재: " + (if (current.isEmpty()) "없음" else current.joinToString(", ")) + "</gray>",

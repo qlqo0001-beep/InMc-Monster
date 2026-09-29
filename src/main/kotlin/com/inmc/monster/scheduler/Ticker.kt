@@ -1,8 +1,7 @@
 package com.inmc.monster.scheduler
 
 import com.inmc.monster.Monsters
-import org.bukkit.Bukkit
-import org.bukkit.scheduler.BukkitTask
+import kr.inmc.core.scheduler.TickerBase
 
 /**
  * The plugin's once-a-second task.
@@ -14,23 +13,13 @@ import org.bukkit.scheduler.BukkitTask
  *
  * Each stage is isolated so one bad definition cannot stop the rest of the ticker.
  */
-class Ticker(private val monsters: Monsters) : Runnable {
+class Ticker(private val monsters: Monsters) : TickerBase(monsters.plugin) {
 
-    private var task: BukkitTask? = null
+    override val periodTicks = PERIOD_TICKS
 
-    fun start() {
-        stop()
-        task = Bukkit.getScheduler().runTaskTimer(monsters.plugin, this, PERIOD_TICKS, PERIOD_TICKS)
-    }
+    override fun ready(): Boolean = monsters.ready
 
-    fun stop() {
-        task?.cancel()
-        task = null
-    }
-
-    override fun run() {
-        if (!monsters.ready) return
-        val now = System.currentTimeMillis()
+    override fun tick(now: Long) {
         val tick = monsters.currentTick()
 
         step("purge") {
@@ -81,14 +70,6 @@ class Ticker(private val monsters: Monsters) : Runnable {
         expired.forEach { monsters.removeMob(it) }
     }
 
-    private inline fun step(name: String, block: () -> Unit) {
-        try {
-            block()
-        } catch (t: Throwable) {
-            monsters.logger.log(java.util.logging.Level.SEVERE, "틱 처리 실패 (" + name + ")", t)
-        }
-    }
-
     companion object {
         const val PERIOD_TICKS = 20L
     }
@@ -101,29 +82,22 @@ class Ticker(private val monsters: Monsters) : Runnable {
  * custom mob at all - on a server where none are spawned it does nothing but a size check, and
  * it also owns the tick counter every cooldown in the plugin is measured against.
  */
-class SkillTicker(private val monsters: Monsters) : Runnable {
+class SkillTicker(private val monsters: Monsters) : TickerBase(monsters.plugin) {
 
-    private var task: BukkitTask? = null
+    /** 관리자가 설정에서 바꾸는 값이라 [start] 때마다 다시 읽어야 한다. */
+    override val periodTicks: Long get() = monsters.config.skillTickPeriod
 
-    fun start() {
-        stop()
-        val period = monsters.config.skillTickPeriod
-        task = Bukkit.getScheduler().runTaskTimer(monsters.plugin, this, period, period)
-    }
+    /**
+     * 준비 검사를 여기서 하지 않는다 - 틱 카운터는 플러그인이 준비되기 전에도 흘러야 하고,
+     * 그 카운터가 플러그인 안 모든 스킬 쿨다운의 기준이다. 진짜 게이트는 [tick] 안
+     * `advanceTick` 바로 뒤에 있다.
+     */
+    override fun ready(): Boolean = true
 
-    fun stop() {
-        task?.cancel()
-        task = null
-    }
-
-    override fun run() {
+    override fun tick(now: Long) {
         monsters.advanceTick(monsters.config.skillTickPeriod)
         if (!monsters.ready) return
         if (monsters.tracker.size == 0) return
-        try {
-            monsters.skills.tick(monsters.currentTick())
-        } catch (t: Throwable) {
-            monsters.logger.log(java.util.logging.Level.SEVERE, "스킬 처리 실패", t)
-        }
+        step("skills") { monsters.skills.tick(monsters.currentTick()) }
     }
 }

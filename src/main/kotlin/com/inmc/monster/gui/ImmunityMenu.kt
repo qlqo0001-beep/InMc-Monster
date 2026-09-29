@@ -3,8 +3,10 @@ package com.inmc.monster.gui
 import com.inmc.monster.Monsters
 import com.inmc.monster.mob.Immunities
 import com.inmc.monster.mob.MobDefinition
-import com.inmc.monster.util.Numbers
-import com.inmc.monster.util.Text
+import kr.inmc.core.gui.Editors
+import kr.inmc.core.gui.Icon
+import kr.inmc.core.util.Numbers
+import kr.inmc.core.util.Text
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause
@@ -71,7 +73,7 @@ class ImmunityMenu(
         ) { event ->
             val player = event.whoClicked as? Player ?: return@set
             Editors.promptText(
-                monsters, player, "면역시킬 포션 효과를 입력하세요. (쉼표로 여러 개)",
+                monsters.prompts, player, "면역시킬 포션 효과를 입력하세요. (쉼표로 여러 개)",
                 listOf(
                     "<gray>예: <white>POISON, WITHER, SLOWNESS</white></gray>",
                     "<gray>'없음' 을 입력하면 모두 지웁니다.</gray>",
@@ -108,7 +110,7 @@ class ImmunityMenu(
         ) { event ->
             val player = event.whoClicked as? Player ?: return@set
             Editors.promptText(
-                monsters, player, "면역시킬 피해 원인을 입력하세요. (쉼표로 여러 개)",
+                monsters.prompts, player, "면역시킬 피해 원인을 입력하세요. (쉼표로 여러 개)",
                 listOf(
                     "<gray>예: <white>CRAMMING, STARVATION, FLY_INTO_WALL</white></gray>",
                     "<gray>'없음' 을 입력하면 모두 지웁니다.</gray>",

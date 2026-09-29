@@ -1,5 +1,6 @@
 package com.inmc.monster.integration
 
+import kr.inmc.core.integration.PluginClasses
 import org.bukkit.Bukkit
 import org.bukkit.entity.Entity
 import java.util.logging.Logger

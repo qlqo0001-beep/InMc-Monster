@@ -36,7 +36,7 @@ class StatModifier(var mult: Double = 1.0, var add: Double = 0.0) {
     fun describe(): String {
         val parts = mutableListOf<String>()
         if (mult != 1.0) parts.add("x" + String.format("%.2f", mult))
-        if (add != 0.0) parts.add((if (add > 0) "+" else "") + com.inmc.monster.util.Numbers.chance(add))
+        if (add != 0.0) parts.add((if (add > 0) "+" else "") + kr.inmc.core.util.Numbers.chance(add))
         return if (parts.isEmpty()) "-" else parts.joinToString(" ")
     }
 }

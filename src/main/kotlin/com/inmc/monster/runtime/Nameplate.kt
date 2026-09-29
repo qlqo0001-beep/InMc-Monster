@@ -2,7 +2,7 @@ package com.inmc.monster.runtime
 
 import com.inmc.monster.Monsters
 import com.inmc.monster.util.Ph
-import com.inmc.monster.util.Text
+import kr.inmc.core.util.Text
 import net.kyori.adventure.bossbar.BossBar
 import org.bukkit.entity.Player
 import java.util.UUID

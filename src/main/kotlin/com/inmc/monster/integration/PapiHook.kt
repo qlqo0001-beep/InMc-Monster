@@ -1,7 +1,7 @@
 package com.inmc.monster.integration
 
 import com.inmc.monster.Monsters
-import com.inmc.monster.util.Text
+import kr.inmc.core.util.Text
 import me.clip.placeholderapi.PlaceholderAPI
 import me.clip.placeholderapi.expansion.PlaceholderExpansion
 import org.bukkit.Bukkit

@@ -3,8 +3,10 @@ package com.inmc.monster.gui
 import com.inmc.monster.Monsters
 import com.inmc.monster.mob.LevelSource
 import com.inmc.monster.mob.MobDefinition
-import com.inmc.monster.util.Numbers
-import com.inmc.monster.util.Text
+import kr.inmc.core.gui.Editors
+import kr.inmc.core.gui.Icon
+import kr.inmc.core.util.Numbers
+import kr.inmc.core.util.Text
 import org.bukkit.Material
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.Player
@@ -32,7 +34,7 @@ class MobBasicMenu(
         ) { event ->
             val player = event.whoClicked as? Player ?: return@set
             Editors.promptText(
-                monsters, player, "표시할 이름을 입력하세요.",
+                monsters.prompts, player, "표시할 이름을 입력하세요.",
                 listOf(
                     "<gray>색상 코드와 MiniMessage 태그를 쓸 수 있습니다.</gray>",
                     "<dark_gray>예: &c부패한 기사   또는   <red>부패한 기사</red></dark_gray>",
@@ -89,7 +91,7 @@ class MobBasicMenu(
                 return@set
             }
             Editors.promptText(
-                monsters, player, "ModelEngine 블루프린트 ID 를 입력하세요.",
+                monsters.prompts, player, "ModelEngine 블루프린트 ID 를 입력하세요.",
                 listOf("<dark_gray>예: corrupted_knight</dark_gray>"),
                 reopen = { reopen(player) },
             ) { input ->
@@ -122,7 +124,7 @@ class MobBasicMenu(
                 return@set
             }
             Editors.promptText(
-                monsters, player, "부모로 삼을 몬스터 이름을 입력하세요.",
+                monsters.prompts, player, "부모로 삼을 몬스터 이름을 입력하세요.",
                 listOf("<gray>등록된 몬스터: " + monsters.mobs.ids().take(8).joinToString(", ") + "</gray>"),
                 reopen = { reopen(player) },
             ) { input ->
@@ -151,7 +153,7 @@ class MobBasicMenu(
         ) { event ->
             if (Editors.isPrompt(event)) {
                 val player = event.whoClicked as? Player ?: return@set
-                Editors.promptInt(monsters, player, "기본 레벨", 1, 10_000, { reopen(player) }) { value ->
+                Editors.promptInt(monsters.prompts, player, "기본 레벨", 1, 10_000, { reopen(player) }) { value ->
                     definition.level.base = value
                     save()
                 }
@@ -234,7 +236,7 @@ class MobBasicMenu(
         ) { event ->
             val player = event.whoClicked as? Player ?: return@set
             Editors.promptText(
-                monsters, player, "스탯과 증가율을 입력하세요.",
+                monsters.prompts, player, "스탯과 증가율을 입력하세요.",
                 listOf(
                     "<gray>형식: <white>스탯이름 증가율</white>  (여러 개는 | 로 구분)</gray>",
                     "<gray>예: <white>MAX_HEALTH 8|ATTACK_DAMAGE 5</white></gray>",
@@ -280,7 +282,7 @@ class MobBasicMenu(
         ) { event ->
             val player = event.whoClicked as? Player ?: return@set
             Editors.promptText(
-                monsters, player, "태그를 입력하세요.",
+                monsters.prompts, player, "태그를 입력하세요.",
                 listOf(
                     "<gray>여러 개는 쉼표로 구분합니다.</gray>",
                     "<gray>'없음' 을 입력하면 모두 지웁니다.</gray>",

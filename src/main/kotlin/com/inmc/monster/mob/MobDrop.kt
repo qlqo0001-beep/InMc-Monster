@@ -1,7 +1,7 @@
 package com.inmc.monster.mob
 
-import com.inmc.monster.item.StoredItem
-import com.inmc.monster.util.Numbers
+import kr.inmc.core.item.StoredItem
+import kr.inmc.core.util.Numbers
 import org.bukkit.configuration.ConfigurationSection
 import java.util.UUID
 
@@ -10,7 +10,7 @@ import java.util.UUID
  *
  * Mirrors the reward entry from the random-box plugin on purpose: the admin gesture is the
  * same one - drop an item into an empty GUI slot, confirm - so the stored shape is the same
- * too, and [com.inmc.monster.item.ItemResolver] rebuilds it from its live definition every
+ * too, and [kr.inmc.core.item.ItemResolver] rebuilds it from its live definition every
  * time it drops rather than handing out a frozen copy.
  */
 class MobDrop(

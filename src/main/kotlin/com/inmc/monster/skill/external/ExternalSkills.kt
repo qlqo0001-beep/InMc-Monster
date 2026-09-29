@@ -6,7 +6,7 @@ import com.inmc.monster.skill.SkillContext
 import com.inmc.monster.skill.SkillParam
 import com.inmc.monster.skill.TargetSelector
 import com.inmc.monster.util.Ph
-import com.inmc.monster.util.Text
+import kr.inmc.core.util.Text
 import org.bukkit.Bukkit
 import org.bukkit.Material
 

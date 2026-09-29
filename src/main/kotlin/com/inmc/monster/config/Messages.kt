@@ -1,11 +1,8 @@
 package com.inmc.monster.config
 
 import com.inmc.monster.util.Ph
-import com.inmc.monster.util.Text
-import net.kyori.adventure.text.Component
-import org.bukkit.command.CommandSender
+import kr.inmc.core.config.MessageCatalog
 import org.bukkit.configuration.file.YamlConfiguration
-import org.bukkit.entity.Player
 
 /**
  * Message catalogue backed by `messages.yml`.
@@ -13,40 +10,11 @@ import org.bukkit.entity.Player
  * Every key has a built-in Korean fallback so an admin deleting a line - or a config file that
  * predates a new key - degrades to a sensible default instead of an empty message.
  */
-class Messages(private val values: Map<String, String>) {
-
-    fun raw(key: String): String = values[key] ?: DEFAULTS[key] ?: ""
-
-    fun component(key: String, ph: Ph? = null, viewer: Player? = null): Component =
-        Text.render(raw(key), ph, viewer)
-
-    fun prefixed(key: String, ph: Ph? = null, viewer: Player? = null): Component =
-        Text.render(raw(PREFIX) + raw(key), ph, viewer)
-
-    fun send(sender: CommandSender, key: String, ph: Ph? = null) {
-        val text = raw(key)
-        if (text.isEmpty()) return
-        sender.sendMessage(Text.render(raw(PREFIX) + text, ph, sender as? Player))
-    }
-
-    /** Sends an already-composed body (per-mob overrides, trigger messages, ...). */
-    fun sendRaw(sender: CommandSender, body: String?, ph: Ph? = null) {
-        if (body.isNullOrBlank()) return
-        sender.sendMessage(Text.render(raw(PREFIX) + body, ph, sender as? Player))
-    }
+class Messages(values: Map<String, String>) : MessageCatalog<Ph>(values, DEFAULTS) {
 
     companion object {
 
-        const val PREFIX = "prefix"
-
-        fun from(config: YamlConfiguration): Messages {
-            val values = HashMap<String, String>(DEFAULTS)
-            for (key in config.getKeys(true)) {
-                if (config.isConfigurationSection(key)) continue
-                config.getString(key)?.let { values[key] = it }
-            }
-            return Messages(values)
-        }
+        fun from(config: YamlConfiguration): Messages = Messages(merge(DEFAULTS, config))
 
         val DEFAULTS: Map<String, String> = mapOf(
             PREFIX to "<gradient:#c62828:#ff8a65>[ 몬스터 ]</gradient> ",

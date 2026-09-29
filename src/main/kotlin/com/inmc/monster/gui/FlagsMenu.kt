@@ -2,7 +2,9 @@ package com.inmc.monster.gui
 
 import com.inmc.monster.Monsters
 import com.inmc.monster.mob.MobDefinition
-import com.inmc.monster.util.Text
+import kr.inmc.core.gui.Editors
+import kr.inmc.core.gui.Icon
+import kr.inmc.core.util.Text
 import org.bukkit.Material
 import org.bukkit.entity.Player
 
@@ -128,7 +130,7 @@ class FlagsMenu(
         ) { event ->
             if (Editors.isPrompt(event)) {
                 val player = event.whoClicked as? Player ?: return@set
-                Editors.promptInt(monsters, player, "수명 (초)", 0, 86_400, { reopen(player) }) {
+                Editors.promptInt(monsters.prompts, player, "수명 (초)", 0, 86_400, { reopen(player) }) {
                     flags.lifespanSeconds = it
                     save()
                 }

@@ -5,8 +5,12 @@ import com.inmc.monster.spawn.Spawner
 import com.inmc.monster.spawn.SpawnerEntry
 import com.inmc.monster.spawn.SpawnerRegistry
 import com.inmc.monster.spawn.SpawnerShape
-import com.inmc.monster.util.Numbers
-import com.inmc.monster.util.Text
+import kr.inmc.core.gui.ConfirmMenu
+import kr.inmc.core.gui.Editors
+import kr.inmc.core.gui.Icon
+import kr.inmc.core.gui.Paging
+import kr.inmc.core.util.Numbers
+import kr.inmc.core.util.Text
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.ClickType
@@ -27,10 +31,10 @@ class SpawnerListMenu(
         fillEmpty(Icon.EDGE)
 
         val all = monsters.spawners.all()
-        val pages = maxOf(1, (all.size + CONTENT - 1) / CONTENT)
+        val pages = Paging.pageCount(all.size, CONTENT)
         page = page.coerceIn(0, pages - 1)
 
-        all.drop(page * CONTENT).take(CONTENT).forEachIndexed { index, spawner ->
+        Paging.slice(all, page, CONTENT).forEachIndexed { index, spawner ->
             set(index, iconFor(spawner)) { event ->
                 val player = event.whoClicked as? Player ?: return@set
                 when (event.click) {
@@ -70,9 +74,9 @@ class SpawnerListMenu(
 
         for (slot in CONTENT until 54) set(slot, Icon.EDGE)
 
-        set(45, Icon.back()) { event -> (event.whoClicked as? Player)?.let { MainMenu(monsters).open(it) } }
-        if (page > 0) set(46, Icon.prevPage()) { event -> switch(event.whoClicked, page - 1) }
-        if (page < pages - 1) set(47, Icon.nextPage()) { event -> switch(event.whoClicked, page + 1) }
+        set(Paging.SLOT_BACK, Icon.back()) { event -> (event.whoClicked as? Player)?.let { MainMenu(monsters).open(it) } }
+        if (page > 0) set(Paging.SLOT_PREV, Icon.prevPage()) { event -> switch(event.whoClicked, page - 1) }
+        if (page < pages - 1) set(Paging.SLOT_NEXT, Icon.nextPage()) { event -> switch(event.whoClicked, page + 1) }
 
         set(
             48,
@@ -174,7 +178,7 @@ class SpawnerListMenu(
         }
 
         Editors.promptText(
-            monsters, player, "스포너 이름을 입력하세요.",
+            monsters.prompts, player, "스포너 이름을 입력하세요.",
             listOf(
                 "<gray>한글/영문/숫자/_/- 32자 이내</gray>",
                 "<gray>위치: <white>" + location.world?.name + " " +
@@ -252,7 +256,7 @@ class SpawnerDetailMenu(
         ) { event ->
             if (Editors.isPrompt(event)) {
                 val player = event.whoClicked as? Player ?: return@set
-                Editors.promptInt(monsters, player, "소환 주기 (초)", 1, 86_400, { reopen(player) }) {
+                Editors.promptInt(monsters.prompts, player, "소환 주기 (초)", 1, 86_400, { reopen(player) }) {
                     spawner.intervalSeconds = it
                     save()
                 }
@@ -402,7 +406,7 @@ class SpawnerDetailMenu(
         ) { event ->
             val player = event.whoClicked as? Player ?: return@set
             Editors.promptText(
-                monsters, player, "소환할 몬스터를 입력하세요.",
+                monsters.prompts, player, "소환할 몬스터를 입력하세요.",
                 listOf(
                     "<gray>형식: <white>몹이름 가중치 마리수</white>  (여러 개는 | 로 구분)</gray>",
                     "<gray>예: <white>부패한기사 10 1|썩은병사 30 2</white></gray>",
@@ -473,7 +477,7 @@ class SpawnerDetailMenu(
                 return@set
             }
             Editors.promptText(
-                monsters, player, "태그를 입력하세요.",
+                monsters.prompts, player, "태그를 입력하세요.",
                 listOf("<dark_gray>예: dungeon:room3</dark_gray>"),
                 reopen = { reopen(player) },
             ) { input ->
@@ -534,7 +538,7 @@ class SpawnerDetailMenu(
             save(); redraw(player)
         }
 
-        set(45, Icon.back()) { event ->
+        set(Paging.SLOT_BACK, Icon.back()) { event ->
             (event.whoClicked as? Player)?.let { SpawnerListMenu(monsters, returnPage).open(it) }
         }
         set(53, Icon.close()) { event -> event.whoClicked.closeInventory() }

@@ -194,7 +194,7 @@ class MonsterCommand(private val monsters: Monsters) {
         val split = trimmed.lastIndexOf(' ')
         if (split <= 0) {
             sender.sendMessage(
-                com.inmc.monster.util.Text.render("<gray>사용법: <white>/몹 복제 [원본이름] [새이름]</white></gray>"),
+                kr.inmc.core.util.Text.render("<gray>사용법: <white>/몹 복제 [원본이름] [새이름]</white></gray>"),
             )
             return 0
         }
@@ -232,7 +232,7 @@ class MonsterCommand(private val monsters: Monsters) {
             val reason = monsters.spawns.lastRefusal
             monsters.messages.send(sender, "spawn-failed")
             if (reason != null) {
-                sender.sendMessage(com.inmc.monster.util.Text.render("<dark_gray>사유: " + reason + "</dark_gray>"))
+                sender.sendMessage(kr.inmc.core.util.Text.render("<dark_gray>사유: " + reason + "</dark_gray>"))
             }
             return 0
         }
@@ -299,7 +299,7 @@ class MonsterCommand(private val monsters: Monsters) {
             appendLine("<gray>연동: MythicLib <white>" + on(monsters.mythicLib.isEnabled) + "</white>  MMOItems <white>" + on(monsters.mmoItems.isEnabled) + "</white>  모델 <white>" + on(monsters.models.isEnabled) + " (" + monsters.models.providerName + ")</white></gray>")
             append("<gray>      MythicMobs <white>" + on(monsters.mythicMobs.isEnabled) + "</white>  MagicSpells <white>" + on(monsters.magicSpells.isEnabled) + "</white>  Vault <white>" + on(monsters.economy.isEnabled) + "</white></gray>")
         }
-        sender.sendMessage(com.inmc.monster.util.Text.render(text))
+        sender.sendMessage(kr.inmc.core.util.Text.render(text))
         return Command.SINGLE_SUCCESS
     }
 
@@ -316,7 +316,7 @@ class MonsterCommand(private val monsters: Monsters) {
         val skill = monsters.skills.registry[skillId.trim()]
         if (skill == null) {
             sender.sendMessage(
-                com.inmc.monster.util.Text.render("<red>'" + skillId + "' 스킬을 찾을 수 없습니다.</red>"),
+                kr.inmc.core.util.Text.render("<red>'" + skillId + "' 스킬을 찾을 수 없습니다.</red>"),
             )
             return 0
         }
@@ -325,13 +325,13 @@ class MonsterCommand(private val monsters: Monsters) {
             .minByOrNull { it.entity.location.distanceSquared(player.location) }
         if (mob == null) {
             sender.sendMessage(
-                com.inmc.monster.util.Text.render("<red>주변에 커스텀 몬스터가 없습니다. 먼저 소환해주세요.</red>"),
+                kr.inmc.core.util.Text.render("<red>주변에 커스텀 몬스터가 없습니다. 먼저 소환해주세요.</red>"),
             )
             return 0
         }
         monsters.skills.castById(mob, skill.id, emptyMap(), target = player)
         sender.sendMessage(
-            com.inmc.monster.util.Text.render(
+            kr.inmc.core.util.Text.render(
                 "<green>" + mob.displayName + " 이(가) <yellow>" + skill.displayName + "</yellow> 을(를) 시전했습니다.</green>",
             ),
         )

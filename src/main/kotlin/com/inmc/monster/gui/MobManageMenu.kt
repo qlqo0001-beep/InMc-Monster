@@ -3,9 +3,10 @@ package com.inmc.monster.gui
 import com.inmc.monster.Monsters
 import com.inmc.monster.mob.MobDefinition
 import com.inmc.monster.spawn.SpawnOptions
-import com.inmc.monster.util.Numbers
+import kr.inmc.core.gui.Icon
+import kr.inmc.core.util.Numbers
 import com.inmc.monster.util.Ph
-import com.inmc.monster.util.Text
+import kr.inmc.core.util.Text
 import org.bukkit.Material
 import org.bukkit.entity.Player
 

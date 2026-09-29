@@ -1,7 +1,7 @@
 package com.inmc.monster.mob
 
-import com.inmc.monster.item.ItemResolver
-import com.inmc.monster.item.StoredItem
+import kr.inmc.core.item.ItemResolver
+import kr.inmc.core.item.StoredItem
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.entity.LivingEntity
 import org.bukkit.inventory.EquipmentSlot

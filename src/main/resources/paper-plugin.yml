@@ -1,7 +1,7 @@
 name: inmc-monster
 version: '${version}'
 main: com.inmc.monster.MonsterPlugin
-api-version: '26.1'
+api-version: '${apiVersion}'   # build.gradle.kts 의 inmc { paper } 에서 유도됨
 description: 커스텀 몬스터 - 스탯·장비·드랍·스킬·패턴·스폰을 GUI 로 관리하며 바닐라 자연스폰은 그대로 유지합니다
 authors: [ INMC ]
 
@@ -14,6 +14,9 @@ authors: [ INMC ]
 # whenever one of them enables, so load order does not matter at all.
 dependencies:
   server:
+    # 필수 의존은 이것 하나뿐이다. core 가 kotlin-stdlib 과 공용 프레임워크를 들고 있어서
+    # join-classpath 없이는 클래스가 보이지 않는다 — 없으면 Paper 가 아예 우리를 켜지 않는다.
+    inmc-core:      { load: BEFORE, required: true,  join-classpath: true }
     Vault:
       load: OMIT
       required: false

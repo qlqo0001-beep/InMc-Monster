@@ -1,11 +1,13 @@
 package com.inmc.monster.gui
 
 import com.inmc.monster.Monsters
-import com.inmc.monster.item.StorageMode
+import kr.inmc.core.gui.Icon
+import kr.inmc.core.gui.Paging
+import kr.inmc.core.item.StorageMode
 import com.inmc.monster.mob.DropDistribution
 import com.inmc.monster.mob.MobDrop
-import com.inmc.monster.util.Numbers
-import com.inmc.monster.util.Text
+import kr.inmc.core.util.Numbers
+import kr.inmc.core.util.Text
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryCloseEvent
@@ -16,7 +18,7 @@ import org.bukkit.inventory.ItemStack
  *
  * This is the random-box reward editor, reused wholesale. The gesture is identical because the
  * job is identical - name an item that will be handed out later - and so is the storage: an
- * [com.inmc.monster.item.ItemRef] with a snapshot fallback, rebuilt from its live definition
+ * [kr.inmc.core.item.ItemRef] with a snapshot fallback, rebuilt from its live definition
  * every time it drops. That is what stops an MMOItems reward from freezing at the values it had
  * on the day it was registered.
  *
@@ -38,10 +40,10 @@ class DropListMenu(
         slotToDrop.clear()
 
         val drops = ctx.table.entries
-        val pages = maxOf(1, (drops.size + CONTENT_SIZE - 1) / CONTENT_SIZE)
+        val pages = Paging.pageCount(drops.size, CONTENT_SIZE)
         page = page.coerceIn(0, pages - 1)
 
-        drops.drop(page * CONTENT_SIZE).take(CONTENT_SIZE).forEachIndexed { index, drop ->
+        Paging.slice(drops, page, CONTENT_SIZE).forEachIndexed { index, drop ->
             slotToDrop[index] = drop
             val icon = dropIcon(drop)
             set(index, if (removeMode && index in stagedRemovals) null else icon) { event ->
@@ -65,14 +67,14 @@ class DropListMenu(
 
         for (slot in CONTENT_SIZE until SIZE) set(slot, Icon.EDGE)
 
-        set(45, Icon.back()) { event ->
+        set(Paging.SLOT_BACK, Icon.back()) { event ->
             val player = event.whoClicked as? Player ?: return@set
             returnStaged(player)
             ctx.back(player)
         }
 
-        if (page > 0) set(46, Icon.prevPage()) { event -> switchPage(event.whoClicked, page - 1) }
-        if (page < pages - 1) set(47, Icon.nextPage()) { event -> switchPage(event.whoClicked, page + 1) }
+        if (page > 0) set(Paging.SLOT_PREV, Icon.prevPage()) { event -> switchPage(event.whoClicked, page - 1) }
+        if (page < pages - 1) set(Paging.SLOT_NEXT, Icon.nextPage()) { event -> switchPage(event.whoClicked, page + 1) }
 
         set(
             48,

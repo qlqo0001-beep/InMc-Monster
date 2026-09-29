@@ -1,12 +1,14 @@
 package com.inmc.monster.gui
 
 import com.inmc.monster.Monsters
-import com.inmc.monster.item.ItemRef
-import com.inmc.monster.item.StorageMode
+import kr.inmc.core.gui.Editors
+import kr.inmc.core.gui.Icon
+import kr.inmc.core.item.ItemRef
+import kr.inmc.core.item.StorageMode
 import com.inmc.monster.mob.DropDistribution
 import com.inmc.monster.mob.MobDrop
-import com.inmc.monster.util.Numbers
-import com.inmc.monster.util.Text
+import kr.inmc.core.util.Numbers
+import kr.inmc.core.util.Text
 import org.bukkit.Material
 import org.bukkit.entity.Player
 
@@ -41,7 +43,7 @@ class DropDetailMenu(
         ) { event ->
             val player = event.whoClicked as? Player ?: return@set
             Editors.promptDouble(
-                monsters, player, "확률", Numbers.MIN_CHANCE, Numbers.MAX_CHANCE, { reopen(player) },
+                monsters.prompts, player, "확률", Numbers.MIN_CHANCE, Numbers.MAX_CHANCE, { reopen(player) },
             ) { value ->
                 drop.chance = value
                 save()
@@ -175,7 +177,7 @@ class DropDetailMenu(
                 return@set
             }
             Editors.promptText(
-                monsters, player, "실행할 명령어를 입력하세요. (| 로 여러 개)",
+                monsters.prompts, player, "실행할 명령어를 입력하세요. (| 로 여러 개)",
                 listOf(
                     "<gray>예: <white>give {플레이어네임} diamond 1|say {플레이어네임} 축하합니다</white></gray>",
                     "<gray>'없음' 을 입력하면 모두 지웁니다.</gray>",
@@ -256,7 +258,7 @@ class DropDetailMenu(
         ) { event ->
             val player = event.whoClicked as? Player ?: return@set
             Editors.promptText(
-                monsters, player, "필요한 도구 종류를 입력하세요. (쉼표로 여러 개)",
+                monsters.prompts, player, "필요한 도구 종류를 입력하세요. (쉼표로 여러 개)",
                 listOf(
                     "<gray>예: <white>DIAMOND_SWORD, NETHERITE_SWORD</white></gray>",
                     "<gray>'없음' 을 입력하면 제한을 지웁니다.</gray>",
@@ -521,7 +523,7 @@ class DropRulesMenu(
         ) { event ->
             val player = event.whoClicked as? Player ?: return@set
             Editors.promptText(
-                monsters, player, "티어를 입력하세요.",
+                monsters.prompts, player, "티어를 입력하세요.",
                 listOf(
                     "<gray>형식: <white>이름 최소 최대</white>  (여러 개는 | 로 구분)</gray>",
                     "<gray>예: <white>희귀 1 1|일반 0 3</white></gray>",

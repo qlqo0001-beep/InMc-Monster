@@ -2,7 +2,9 @@ package com.inmc.monster.gui
 
 import com.inmc.monster.Monsters
 import com.inmc.monster.mob.MobDefinition
-import com.inmc.monster.util.Text
+import kr.inmc.core.gui.Icon
+import kr.inmc.core.gui.Paging
+import kr.inmc.core.util.Text
 import org.bukkit.Material
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.Player
@@ -34,10 +36,10 @@ class EntityTypeMenu(
         fillEmpty(Icon.EDGE)
 
         val types = typesIn(group)
-        val pages = maxOf(1, (types.size + CONTENT - 1) / CONTENT)
+        val pages = Paging.pageCount(types.size, CONTENT)
         page = page.coerceIn(0, pages - 1)
 
-        types.drop(page * CONTENT).take(CONTENT).forEachIndexed { index, type ->
+        Paging.slice(types, page, CONTENT).forEachIndexed { index, type ->
             val selected = type == definition.entityType
             set(
                 index,
@@ -65,11 +67,11 @@ class EntityTypeMenu(
 
         for (slot in CONTENT until 54) set(slot, Icon.EDGE)
 
-        set(45, Icon.back()) { event ->
+        set(Paging.SLOT_BACK, Icon.back()) { event ->
             (event.whoClicked as? Player)?.let { MobBasicMenu(monsters, definition).open(it) }
         }
-        if (page > 0) set(46, Icon.prevPage()) { event -> open(event.whoClicked, group, page - 1) }
-        if (page < pages - 1) set(47, Icon.nextPage()) { event -> open(event.whoClicked, group, page + 1) }
+        if (page > 0) set(Paging.SLOT_PREV, Icon.prevPage()) { event -> open(event.whoClicked, group, page - 1) }
+        if (page < pages - 1) set(Paging.SLOT_NEXT, Icon.nextPage()) { event -> open(event.whoClicked, group, page + 1) }
 
         // Group tabs
         Group.entries.forEachIndexed { index, tab ->

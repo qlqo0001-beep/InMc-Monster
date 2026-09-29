@@ -1,10 +1,10 @@
 package com.inmc.monster.spawn
 
 import com.inmc.monster.Monsters
+import kr.inmc.core.store.YamlFolder
 import org.bukkit.Location
 import org.bukkit.block.Block
 import org.bukkit.configuration.file.YamlConfiguration
-import java.io.File
 import java.util.Random
 import java.util.concurrent.ConcurrentHashMap
 
@@ -20,14 +20,14 @@ import java.util.concurrent.ConcurrentHashMap
 class SpawnerRegistry(private val monsters: Monsters) {
 
     private val spawners = ConcurrentHashMap<String, Spawner>()
-    private val dirty = ConcurrentHashMap.newKeySet<String>()
+
+    /** 폴더 저장 경로. dirty 집합과 파일 쓰기를 여기에 맡긴다. */
+    private val files = YamlFolder(monsters.io, monsters.logger, "spawners", HEADER, "스포너")
 
     /** Block position key -> spawner id, for the block-bound kind. */
     private val byBlock = ConcurrentHashMap<String, String>()
 
     private val rng = Random()
-
-    private val folder: File get() = monsters.io.file("spawners")
 
     val size: Int get() = spawners.size
 
@@ -63,15 +63,14 @@ class SpawnerRegistry(private val monsters: Monsters) {
 
     fun delete(id: String): Boolean {
         val spawner = spawners.remove(id) ?: return false
-        dirty.remove(id)
         rebuildBlockIndex()
-        monsters.io.asyncRun { File(folder, spawner.id + ".yml").delete() }
+        files.deleteFile(spawner.id)
         return true
     }
 
     fun markDirty(spawner: Spawner) {
         if (spawners[spawner.id] !== spawner) return
-        dirty.add(spawner.id)
+        files.markDirty(spawner.id)
     }
 
     fun rebuildBlockIndex() {
@@ -223,21 +222,10 @@ class SpawnerRegistry(private val monsters: Monsters) {
 
     fun load(then: () -> Unit) {
         monsters.io.async({
-            val dir = folder
-            dir.mkdirs()
-            val files = dir.listFiles { f: File -> f.isFile && f.name.endsWith(".yml") } ?: emptyArray()
-            files.mapNotNull { file ->
-                val id = file.nameWithoutExtension
-                try {
-                    id to Spawner.load(id, monsters.io.load(file))
-                } catch (t: Throwable) {
-                    monsters.logger.severe("스포너를 읽지 못했습니다 (" + file.name + "): " + t.message)
-                    null
-                }
-            }
+            files.readAll { id, config -> Spawner.load(id, config) }
         }) { loaded ->
             spawners.clear()
-            dirty.clear()
+            files.clearDirty()
             loaded.forEach { (id, spawner) -> spawners[id] = spawner }
             rebuildBlockIndex()
             if (loaded.isNotEmpty()) monsters.logger.info("스포너 " + loaded.size + "개를 불러왔습니다")
@@ -245,43 +233,20 @@ class SpawnerRegistry(private val monsters: Monsters) {
         }
     }
 
-    fun flushDirty() {
-        if (dirty.isEmpty()) return
-        val pending = dirty.toList()
-        dirty.removeAll(pending.toSet())
-        val snapshots = pending.mapNotNull { id ->
-            val spawner = spawners[id] ?: return@mapNotNull null
-            val config = YamlConfiguration()
-            spawner.save(config)
-            id to config.saveToString()
-        }
-        if (snapshots.isEmpty()) return
-        monsters.io.asyncRun {
-            folder.mkdirs()
-            for ((id, text) in snapshots) {
-                try {
-                    File(folder, "$id.yml").writeText(HEADER + text, Charsets.UTF_8)
-                } catch (t: Throwable) {
-                    monsters.logger.severe("스포너 저장 실패 (" + id + "): " + t.message)
-                }
-            }
-        }
-    }
+    fun flushDirty() = files.flushDirty(::render)
 
-    fun flushBlocking() {
-        if (dirty.isEmpty()) return
-        val pending = dirty.toList()
-        dirty.clear()
-        folder.mkdirs()
-        for (id in pending) {
-            val spawner = spawners[id] ?: continue
-            val config = YamlConfiguration()
-            try {
-                spawner.save(config)
-                File(folder, "$id.yml").writeText(HEADER + config.saveToString(), Charsets.UTF_8)
-            } catch (t: Throwable) {
-                monsters.logger.severe("스포너 저장 실패 (" + id + "): " + t.message)
-            }
+    fun flushBlocking() = files.flushDirtyBlocking(::render)
+
+    /** 메인 스레드에서 돈다. */
+    private fun render(id: String): YamlConfiguration? {
+        val spawner = spawners[id] ?: return null
+        val config = YamlConfiguration()
+        return try {
+            spawner.save(config)
+            config
+        } catch (t: Throwable) {
+            monsters.logger.severe("스포너 직렬화 실패 (" + id + "): " + t.message)
+            null
         }
     }
 

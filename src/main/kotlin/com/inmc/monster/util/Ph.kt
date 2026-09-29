@@ -1,5 +1,7 @@
 package com.inmc.monster.util
 
+import kr.inmc.core.util.Numbers
+import kr.inmc.core.util.TokenBag
 import org.bukkit.Location
 import org.bukkit.entity.Player
 
@@ -9,11 +11,11 @@ import org.bukkit.entity.Player
  * Tokens are spelled in Korean because that is what an admin types into the GUI, with English
  * aliases resolving to the same value so either spelling works in a config file.
  */
-class Ph {
+class Ph : TokenBag<Ph>() {
 
-    private val values = LinkedHashMap<String, String>()
+    override val aliases: Map<String, List<String>> get() = ALIASES
 
-    fun raw(token: String, value: String): Ph = apply { values[token] = value }
+
 
     fun player(name: String): Ph = put(PLAYER, name)
 
@@ -64,20 +66,9 @@ class Ph {
 
     fun world(name: String): Ph = put(WORLD, name)
 
-    fun copy(): Ph = Ph().also { it.values.putAll(values) }
+    fun copy(): Ph = copyValuesInto(Ph())
 
-    fun apply(raw: String): String {
-        if (raw.isEmpty() || values.isEmpty()) return raw
-        var out = raw
-        for ((token, value) in values) {
-            for (alias in ALIASES[token] ?: listOf(token)) {
-                if (out.contains(alias)) out = out.replace(alias, value)
-            }
-        }
-        return out
-    }
 
-    private fun put(token: String, value: String): Ph = apply { values[token] = value }
 
     companion object {
         const val PLAYER = "player"

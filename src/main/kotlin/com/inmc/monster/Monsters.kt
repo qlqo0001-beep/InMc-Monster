@@ -1,28 +1,33 @@
 package com.inmc.monster
 
+import com.inmc.monster.trigger.TriggerCounters
+import com.inmc.monster.trigger.TriggerProgressImport
+import java.io.File
+import kr.inmc.core.CorePlugin
+import kr.inmc.core.InmcHost
 import com.inmc.monster.affix.AffixRegistry
 import com.inmc.monster.affix.AffixRoller
 import com.inmc.monster.api.MonsterAPI
 import com.inmc.monster.combat.DamageBridge
 import com.inmc.monster.combat.StatResolver
-import com.inmc.monster.config.ConfigService
+import kr.inmc.core.config.ConfigService
 import com.inmc.monster.config.Messages
 import com.inmc.monster.config.PluginConfig
 import com.inmc.monster.config.WorldSettingsRegistry
 import com.inmc.monster.death.DeathHandler
 import com.inmc.monster.death.DropService
-import com.inmc.monster.input.ChatPrompt
-import com.inmc.monster.integration.CustomItemHook
-import com.inmc.monster.integration.EconomyHook
-import com.inmc.monster.integration.MMOItemsHook
+import kr.inmc.core.input.ChatPrompt
+import kr.inmc.core.integration.CustomItemHook
+import kr.inmc.core.integration.EconomyHook
+import kr.inmc.core.integration.MMOItemsHook
 import com.inmc.monster.integration.MagicSpellsHook
 import com.inmc.monster.integration.ModelHook
 import com.inmc.monster.integration.MythicLibHook
 import com.inmc.monster.integration.MythicMobsHook
 import com.inmc.monster.integration.PapiHook
 import com.inmc.monster.integration.RegionHook
-import com.inmc.monster.item.ItemMatcher
-import com.inmc.monster.item.ItemResolver
+import kr.inmc.core.item.ItemMatcher
+import kr.inmc.core.item.ItemResolver
 import com.inmc.monster.mob.MobRegistry
 import com.inmc.monster.runtime.ActiveMob
 import com.inmc.monster.runtime.BossBars
@@ -36,10 +41,12 @@ import com.inmc.monster.spawn.SpawnService
 import com.inmc.monster.spawn.SpawnerRegistry
 import com.inmc.monster.trigger.TriggerRegistry
 import com.inmc.monster.util.Ph
-import com.inmc.monster.util.Text
+import kr.inmc.core.util.Placeholders
+import kr.inmc.core.util.Text
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.configuration.file.YamlConfiguration
+import org.bukkit.command.CommandSender
 import org.bukkit.plugin.java.JavaPlugin
 
 /**
@@ -49,10 +56,14 @@ import org.bukkit.plugin.java.JavaPlugin
  * volatile config objects and re-reads the definition files, but never rebuilds the services,
  * so listeners, menus and live mobs never end up holding a stale reference.
  */
-class Monsters(val plugin: JavaPlugin) {
+class Monsters(override val plugin: JavaPlugin) : InmcHost {
 
     val logger: java.util.logging.Logger = plugin.logger
-    val io = ConfigService(plugin)
+    override val io = ConfigService(plugin)
+
+    /** core 의 ChatPrompt·MenuListener 가 메시지를 보낼 때 쓰는 통로. */
+    override fun tell(target: CommandSender, key: String, ph: Placeholders?) =
+        messages.send(target, key, ph as? Ph)
 
     // --- integrations (all optional) -------------------------------------------
     val mmoItems = MMOItemsHook(logger)
@@ -122,6 +133,37 @@ class Monsters(val plugin: JavaPlugin) {
 
     // --- lifecycle --------------------------------------------------------------
 
+    /**
+     * `triggers/trigger-progress.yml` 을 공유 저장소로 한 번 옮기고 [then] 을 부른다.
+     *
+     * `enable` 에서만 부른다. `TriggerRegistry.load` 안에 넣으면 리로드 경로 네 곳에서
+     * 다시 돌게 된다 — 이름 변경 표시가 그걸 막아주긴 하지만, 애초에 여기가 맞는 자리다.
+     *
+     * 성공한 뒤에야 원본 이름을 바꾼다. 순서를 뒤집으면 저장이 실패했을 때 사본이 없다.
+     */
+    private fun importTriggerProgress(then: () -> Unit) {
+        val store = CorePlugin.get().players
+        val source = TriggerCounters.fileOf(io.file("triggers"))
+        if (!source.exists()) {
+            then()
+            return
+        }
+        io.async({ TriggerProgressImport.parse(io.load(source)) { logger.warning(it) } }) { entries ->
+            val written = TriggerProgressImport.apply(store, entries)
+            logger.info("등장 조건 진행도 " + written + "건을 inmc-core 로 옮겼습니다")
+            val archived = File(source.parentFile, source.name + TriggerProgressImport.IMPORTED_SUFFIX)
+            io.asyncRun {
+                if (!source.renameTo(archived)) {
+                    logger.warning(
+                        "옮긴 진행도 파일의 이름을 바꾸지 못했습니다 (" + source.name +
+                            "). 다음 부팅에 다시 읽지만 이미 있는 값은 덮지 않습니다.",
+                    )
+                }
+            }
+            then()
+        }
+    }
+
     fun enable(then: () -> Unit) {
         skills.setup()
         reload { count ->
@@ -129,13 +171,21 @@ class Monsters(val plugin: JavaPlugin) {
             respawns.load {
                 spawners.load {
                     triggers.load {
-                        ready = true
-                        MonsterAPI.install(api)
-                        if (config.cleanup.onStartup) {
-                            val removed = sweepLeftovers()
-                            if (removed > 0) logger.info("이전 세션에 남아 있던 커스텀 몬스터 " + removed + "마리를 정리했습니다")
+                        // 진행도는 공유 저장소에서 온다. 그 저장소의 로드 콜백은 첫 틱에야
+                        // 돌기 때문에(load: BEFORE 로는 보장되지 않는다) 여기서 기다린다.
+                        // ready 를 먼저 올리면 리스너가 임포트 전 저장소에 쓰기 시작한다.
+                        CorePlugin.get().players.whenReady {
+                            importTriggerProgress {
+                                triggers.loadProgress()
+                                ready = true
+                                MonsterAPI.install(api)
+                                if (config.cleanup.onStartup) {
+                                    val removed = sweepLeftovers()
+                                    if (removed > 0) logger.info("이전 세션에 남아 있던 커스텀 몬스터 " + removed + "마리를 정리했습니다")
+                                }
+                                then()
+                            }
                         }
-                        then()
                     }
                 }
             }
@@ -180,6 +230,8 @@ class Monsters(val plugin: JavaPlugin) {
                         // merely detectable.
                         closeOpenMenus()
                         skills.reportUnusable()
+                        // 커스텀아이템이 있으면 "몬스터 드랍·장비" 역할을 읽는다(처음이면 바닐라가 아닌 아이템을 옮긴다).
+                        com.inmc.monster.mob.MonsterRoles.sync(this)
                         then(count)
                     }
                 }
@@ -208,7 +260,9 @@ class Monsters(val plugin: JavaPlugin) {
     private fun closeOpenMenus() {
         var closed = 0
         for (player in Bukkit.getOnlinePlayers()) {
-            if (player.openInventory.topInventory.holder !is com.inmc.monster.gui.Menu) continue
+            // core 가 소유한 화면(공용 확인창·설정 화면)도 잡아야 하므로 owner 로 가려낸다.
+            val holder = player.openInventory.topInventory.holder
+            if (holder !is kr.inmc.core.gui.Menu || holder.owner !== this) continue
             player.closeInventory()
             messages.send(player, "reload-menu-closed")
             closed++

@@ -2,8 +2,8 @@ package com.inmc.monster.item
 
 import com.inmc.monster.Monsters
 import com.inmc.monster.mob.MobDefinition
-import com.inmc.monster.util.Numbers
-import com.inmc.monster.util.Text
+import kr.inmc.core.util.Numbers
+import kr.inmc.core.util.Text
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.inventory.ItemStack

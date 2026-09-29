@@ -6,8 +6,11 @@ import com.inmc.monster.death.DeathActionType
 import com.inmc.monster.mob.MobDefinition
 import com.inmc.monster.skill.ParamType
 import com.inmc.monster.skill.SkillParam
-import com.inmc.monster.util.Numbers
-import com.inmc.monster.util.Text
+import kr.inmc.core.gui.Editors
+import kr.inmc.core.gui.Icon
+import kr.inmc.core.gui.Paging
+import kr.inmc.core.util.Numbers
+import kr.inmc.core.util.Text
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.ClickType
@@ -30,10 +33,10 @@ class ActionListMenu(
         clear()
         fillEmpty(Icon.EDGE)
 
-        val pages = maxOf(1, (actions.size + CONTENT - 1) / CONTENT)
+        val pages = Paging.pageCount(actions.size, CONTENT)
         page = page.coerceIn(0, pages - 1)
 
-        actions.drop(page * CONTENT).take(CONTENT).forEachIndexed { index, action ->
+        Paging.slice(actions, page, CONTENT).forEachIndexed { index, action ->
             set(index, iconFor(action)) { event ->
                 val player = event.whoClicked as? Player ?: return@set
                 when (event.click) {
@@ -59,9 +62,9 @@ class ActionListMenu(
 
         for (slot in CONTENT until 54) set(slot, Icon.EDGE)
 
-        set(45, Icon.back()) { event -> (event.whoClicked as? Player)?.let(onBack) }
-        if (page > 0) set(46, Icon.prevPage()) { event -> switch(event.whoClicked, page - 1) }
-        if (page < pages - 1) set(47, Icon.nextPage()) { event -> switch(event.whoClicked, page + 1) }
+        set(Paging.SLOT_BACK, Icon.back()) { event -> (event.whoClicked as? Player)?.let(onBack) }
+        if (page > 0) set(Paging.SLOT_PREV, Icon.prevPage()) { event -> switch(event.whoClicked, page - 1) }
+        if (page < pages - 1) set(Paging.SLOT_NEXT, Icon.nextPage()) { event -> switch(event.whoClicked, page + 1) }
 
         set(
             49,
@@ -212,7 +215,7 @@ class ActionPickerMenu(
             }
         }
 
-        set(45, Icon.back()) { event -> (event.whoClicked as? Player)?.let(onBack) }
+        set(Paging.SLOT_BACK, Icon.back()) { event -> (event.whoClicked as? Player)?.let(onBack) }
         set(53, Icon.close()) { event -> event.whoClicked.closeInventory() }
     }
 }
@@ -253,7 +256,7 @@ class ActionDetailMenu(
         ) { event ->
             if (Editors.isPrompt(event)) {
                 val player = event.whoClicked as? Player ?: return@set
-                Editors.promptDouble(monsters, player, "발동 확률", 0.01, 100.0, { reopen(player) }) {
+                Editors.promptDouble(monsters.prompts, player, "발동 확률", 0.01, 100.0, { reopen(player) }) {
                     action.chance = it
                     save()
                 }
@@ -296,7 +299,7 @@ class ActionDetailMenu(
         ) { event ->
             val player = event.whoClicked as? Player ?: return@set
             Editors.promptText(
-                monsters, player, "허용할 월드를 입력하세요. (쉼표로 여러 개)",
+                monsters.prompts, player, "허용할 월드를 입력하세요. (쉼표로 여러 개)",
                 listOf("<gray>'없음' 을 입력하면 제한을 지웁니다.</gray>"),
                 reopen = { reopen(player) },
             ) { input ->
@@ -323,7 +326,7 @@ class ActionDetailMenu(
         ) { event ->
             val player = event.whoClicked as? Player ?: return@set
             Editors.promptText(
-                monsters, player, "필요한 권한 노드를 입력하세요.",
+                monsters.prompts, player, "필요한 권한 노드를 입력하세요.",
                 listOf("<gray>'없음' 을 입력하면 조건을 지웁니다.</gray>"),
                 reopen = { reopen(player) },
             ) { input ->
@@ -352,7 +355,7 @@ class ActionDetailMenu(
             set(28 + index + (index / 7) * 2, paramIcon(param)) { event -> handle(event, param) }
         }
 
-        set(45, Icon.back()) { event -> (event.whoClicked as? Player)?.let(onBack) }
+        set(Paging.SLOT_BACK, Icon.back()) { event -> (event.whoClicked as? Player)?.let(onBack) }
 
         set(
             53,
@@ -426,7 +429,7 @@ class ActionDetailMenu(
             ParamType.INT -> {
                 if (Editors.isPrompt(event)) {
                     Editors.promptInt(
-                        monsters, player, param.label, param.min.toInt(), param.max.toInt(), { reopen(player) },
+                        monsters.prompts, player, param.label, param.min.toInt(), param.max.toInt(), { reopen(player) },
                     ) { action.values[param.key] = it; save() }
                     return
                 }
@@ -439,7 +442,7 @@ class ActionDetailMenu(
             ParamType.DOUBLE -> {
                 if (Editors.isPrompt(event)) {
                     Editors.promptDouble(
-                        monsters, player, param.label, param.min, param.max, { reopen(player) },
+                        monsters.prompts, player, param.label, param.min, param.max, { reopen(player) },
                     ) { action.values[param.key] = it; save() }
                     return
                 }
@@ -454,7 +457,7 @@ class ActionDetailMenu(
             }
 
             else -> Editors.promptText(
-                monsters, player, param.label + " 값을 입력하세요.",
+                monsters.prompts, player, param.label + " 값을 입력하세요.",
                 hintsFor(param),
                 reopen = { reopen(player) },
             ) { input ->

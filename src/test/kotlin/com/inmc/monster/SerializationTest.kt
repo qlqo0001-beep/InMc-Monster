@@ -77,8 +77,8 @@ class MobDefinitionRoundTripTest {
         immunities.damageCauses.add(org.bukkit.event.entity.EntityDamageEvent.DamageCause.CRAMMING)
 
         equipment[EquipmentSlot.HAND] = com.inmc.monster.mob.EquipmentEntry(
-            item = com.inmc.monster.item.StoredItem(
-                ref = com.inmc.monster.item.ItemRef.MMOItems("SWORD", "CURSED_BLADE"),
+            item = kr.inmc.core.item.StoredItem(
+                ref = kr.inmc.core.item.ItemRef.MMOItems("SWORD", "CURSED_BLADE"),
                 material = Material.IRON_SWORD,
             ),
             dropChance = 2.5,
@@ -97,8 +97,8 @@ class MobDefinitionRoundTripTest {
         drops.entries.add(
             MobDrop(
                 id = "drop1",
-                item = com.inmc.monster.item.StoredItem(
-                    ref = com.inmc.monster.item.ItemRef.Vanilla(Material.DIAMOND),
+                item = kr.inmc.core.item.StoredItem(
+                    ref = kr.inmc.core.item.ItemRef.Vanilla(Material.DIAMOND),
                     material = Material.DIAMOND,
                 ),
                 chance = 12.5,

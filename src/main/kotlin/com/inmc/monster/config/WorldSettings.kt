@@ -1,5 +1,6 @@
 package com.inmc.monster.config
 
+import kr.inmc.core.config.ConfigService
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.configuration.file.YamlConfiguration
 import java.io.File

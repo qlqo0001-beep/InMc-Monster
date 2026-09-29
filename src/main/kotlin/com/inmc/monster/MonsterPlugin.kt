@@ -2,7 +2,7 @@ package com.inmc.monster
 
 import com.inmc.monster.command.MonsterCommand
 import com.inmc.monster.listener.CombatListener
-import com.inmc.monster.listener.MenuListener
+import kr.inmc.core.listener.MenuListener
 import com.inmc.monster.listener.SessionListener
 import com.inmc.monster.listener.SpawnEggListener
 import com.inmc.monster.listener.SpawnListener
@@ -39,6 +39,13 @@ class MonsterPlugin : JavaPlugin() {
 
         // Commands register through the lifecycle manager, which must be called from onEnable.
         MonsterCommand(monsters).register(this)
+        // 커스텀아이템에 "몬스터 드랍·장비" 역할을 내놓는다(core ItemRoles).
+        for (role in com.inmc.monster.mob.MonsterRoles.roles(monsters)) kr.inmc.core.integration.ItemRoles.register(role)
+        kr.inmc.core.integration.ItemRoles.listen(com.inmc.monster.mob.MonsterRoles.OWNER) { role ->
+            if (role == null || role == com.inmc.monster.mob.MonsterRoles.DROP || role == com.inmc.monster.mob.MonsterRoles.EQUIP) {
+                com.inmc.monster.mob.MonsterRoles.sync(monsters)
+            }
+        }
 
         Bukkit.getPluginManager().let { pm ->
             pm.registerEvents(MenuListener(monsters), this)
@@ -60,6 +67,7 @@ class MonsterPlugin : JavaPlugin() {
 
     override fun onDisable() {
         if (!::monsters.isInitialized) return
+        kr.inmc.core.integration.ItemRoles.unregisterAll(com.inmc.monster.mob.MonsterRoles.OWNER)
         ticker.stop()
         skillTicker.stop()
         monsters.shutdown()

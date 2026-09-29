@@ -6,8 +6,12 @@ import com.inmc.monster.trigger.SpawnAnchor
 import com.inmc.monster.trigger.Trigger
 import com.inmc.monster.trigger.TriggerRegistry
 import com.inmc.monster.trigger.TriggerType
-import com.inmc.monster.util.Numbers
-import com.inmc.monster.util.Text
+import kr.inmc.core.gui.ConfirmMenu
+import kr.inmc.core.gui.Editors
+import kr.inmc.core.gui.Icon
+import kr.inmc.core.gui.Paging
+import kr.inmc.core.util.Numbers
+import kr.inmc.core.util.Text
 import org.bukkit.Material
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.Player
@@ -29,10 +33,10 @@ class TriggerListMenu(
         fillEmpty(Icon.EDGE)
 
         val all = monsters.triggers.all()
-        val pages = maxOf(1, (all.size + CONTENT - 1) / CONTENT)
+        val pages = Paging.pageCount(all.size, CONTENT)
         page = page.coerceIn(0, pages - 1)
 
-        all.drop(page * CONTENT).take(CONTENT).forEachIndexed { index, trigger ->
+        Paging.slice(all, page, CONTENT).forEachIndexed { index, trigger ->
             set(index, iconFor(trigger)) { event ->
                 val player = event.whoClicked as? Player ?: return@set
                 when (event.click) {
@@ -62,9 +66,9 @@ class TriggerListMenu(
 
         for (slot in CONTENT until 54) set(slot, Icon.EDGE)
 
-        set(45, Icon.back()) { event -> (event.whoClicked as? Player)?.let { MainMenu(monsters).open(it) } }
-        if (page > 0) set(46, Icon.prevPage()) { event -> switch(event.whoClicked, page - 1) }
-        if (page < pages - 1) set(47, Icon.nextPage()) { event -> switch(event.whoClicked, page + 1) }
+        set(Paging.SLOT_BACK, Icon.back()) { event -> (event.whoClicked as? Player)?.let { MainMenu(monsters).open(it) } }
+        if (page > 0) set(Paging.SLOT_PREV, Icon.prevPage()) { event -> switch(event.whoClicked, page - 1) }
+        if (page < pages - 1) set(Paging.SLOT_NEXT, Icon.nextPage()) { event -> switch(event.whoClicked, page + 1) }
 
         set(
             49,
@@ -77,7 +81,7 @@ class TriggerListMenu(
         ) { event ->
             val player = event.whoClicked as? Player ?: return@set
             Editors.promptText(
-                monsters, player, "등장 조건 이름을 입력하세요.",
+                monsters.prompts, player, "등장 조건 이름을 입력하세요.",
                 listOf("<dark_gray>예: 나무꾼의저주, 비오는날의손님</dark_gray>"),
                 reopen = { TriggerListMenu(monsters, page).open(player) },
             ) { input ->
@@ -236,7 +240,7 @@ class TriggerDetailMenu(
         ) { event ->
             if (Editors.isPrompt(event)) {
                 val player = event.whoClicked as? Player ?: return@set
-                Editors.promptInt(monsters, player, "누적 횟수", 1, 100_000, { reopen(player) }) {
+                Editors.promptInt(monsters.prompts, player, "누적 횟수", 1, 100_000, { reopen(player) }) {
                     trigger.count = it
                     save()
                 }
@@ -255,7 +259,7 @@ class TriggerDetailMenu(
         ) { event ->
             if (Editors.isPrompt(event)) {
                 val player = event.whoClicked as? Player ?: return@set
-                Editors.promptDouble(monsters, player, "등장 확률", 0.01, 100.0, { reopen(player) }) {
+                Editors.promptDouble(monsters.prompts, player, "등장 확률", 0.01, 100.0, { reopen(player) }) {
                     trigger.chance = it
                     save()
                 }
@@ -302,7 +306,7 @@ class TriggerDetailMenu(
         ) { event ->
             val player = event.whoClicked as? Player ?: return@set
             Editors.promptText(
-                monsters, player, "대상 블록/아이템을 입력하세요. (쉼표로 여러 개)",
+                monsters.prompts, player, "대상 블록/아이템을 입력하세요. (쉼표로 여러 개)",
                 listOf(
                     "<gray>예: <white>OAK_LOG, BIRCH_LOG, SPRUCE_LOG</white></gray>",
                     "<gray>'없음' 을 입력하면 제한을 지웁니다.</gray>",
@@ -337,7 +341,7 @@ class TriggerDetailMenu(
         ) { event ->
             val player = event.whoClicked as? Player ?: return@set
             Editors.promptText(
-                monsters, player, "대상 엔티티를 입력하세요. (쉼표로 여러 개)",
+                monsters.prompts, player, "대상 엔티티를 입력하세요. (쉼표로 여러 개)",
                 listOf(
                     "<gray>예: <white>ZOMBIE, SKELETON</white></gray>",
                     "<gray>'없음' 을 입력하면 제한을 지웁니다.</gray>",
@@ -379,7 +383,7 @@ class TriggerDetailMenu(
                 return@set
             }
             Editors.promptText(
-                monsters, player, "등장시킬 몬스터 이름을 입력하세요.",
+                monsters.prompts, player, "등장시킬 몬스터 이름을 입력하세요.",
                 listOf("<gray>등록된 몬스터: " + monsters.mobs.ids().take(10).joinToString(", ") + "</gray>"),
                 reopen = { reopen(player) },
             ) { input ->
@@ -409,7 +413,7 @@ class TriggerDetailMenu(
         ) { event ->
             if (Editors.isPrompt(event)) {
                 val player = event.whoClicked as? Player ?: return@set
-                Editors.promptDouble(monsters, player, "흩어지는 반경", 0.0, 64.0, { reopen(player) }) {
+                Editors.promptDouble(monsters.prompts, player, "흩어지는 반경", 0.0, 64.0, { reopen(player) }) {
                     trigger.spawnRadius = it
                     save()
                 }
@@ -441,7 +445,7 @@ class TriggerDetailMenu(
                 return@set
             }
             Editors.promptText(
-                monsters, player, "등장할 때 보낼 메시지를 입력하세요.",
+                monsters.prompts, player, "등장할 때 보낼 메시지를 입력하세요.",
                 listOf(
                     "<dark_gray>예: &c숲이 분노했다!</dark_gray>",
                     "<gray>'없음' 을 입력하면 메시지를 지웁니다.</gray>",
@@ -499,7 +503,7 @@ class TriggerDetailMenu(
         ) { event ->
             val player = event.whoClicked as? Player ?: return@set
             Editors.promptText(
-                monsters, player, "허용할 월드를 입력하세요. (쉼표로 여러 개)",
+                monsters.prompts, player, "허용할 월드를 입력하세요. (쉼표로 여러 개)",
                 listOf("<gray>'없음' 을 입력하면 제한을 지웁니다.</gray>"),
                 reopen = { reopen(player) },
             ) { input ->
@@ -524,7 +528,7 @@ class TriggerDetailMenu(
         ) { event ->
             val player = event.whoClicked as? Player ?: return@set
             Editors.promptText(
-                monsters, player, "필요한 권한 노드를 입력하세요.",
+                monsters.prompts, player, "필요한 권한 노드를 입력하세요.",
                 listOf("<gray>'없음' 을 입력하면 조건을 지웁니다.</gray>"),
                 reopen = { reopen(player) },
             ) { input ->
@@ -593,7 +597,7 @@ class TriggerDetailMenu(
             save(); redraw(event.whoClicked)
         }
 
-        set(45, Icon.back()) { event ->
+        set(Paging.SLOT_BACK, Icon.back()) { event ->
             (event.whoClicked as? Player)?.let { TriggerListMenu(monsters, returnPage).open(it) }
         }
         set(53, Icon.close()) { event -> event.whoClicked.closeInventory() }

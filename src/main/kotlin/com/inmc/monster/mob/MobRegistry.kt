@@ -1,9 +1,9 @@
 package com.inmc.monster.mob
 
-import com.inmc.monster.config.ConfigService
+import kr.inmc.core.config.ConfigService
+import kr.inmc.core.store.YamlFolder
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.EntityType
-import java.io.File
 import java.util.EnumMap
 import java.util.concurrent.ConcurrentHashMap
 import java.util.logging.Logger
@@ -21,7 +21,9 @@ class MobRegistry(
 ) {
 
     private val mobs = ConcurrentHashMap<String, MobDefinition>()
-    private val dirty = ConcurrentHashMap.newKeySet<String>()
+
+    /** 폴더 저장 경로. dirty 집합과 파일 쓰기를 여기에 맡긴다. */
+    private val files = YamlFolder(io, logger, "mobs", HEADER, "몬스터")
 
     /**
      * EntityType -> mobs that may replace a vanilla spawn of that type.
@@ -31,8 +33,6 @@ class MobRegistry(
      * that usually returns null.
      */
     private val replacementIndex = EnumMap<EntityType, MutableList<MobDefinition>>(EntityType::class.java)
-
-    private val folder: File get() = io.file("mobs")
 
     val size: Int get() = mobs.size
 
@@ -60,21 +60,10 @@ class MobRegistry(
 
     fun loadAll(defaultDropChance: Double, then: (Int) -> Unit) {
         io.async({
-            val dir = folder
-            dir.mkdirs()
-            val files = dir.listFiles { f: File -> f.isFile && f.name.endsWith(".yml") } ?: emptyArray()
-            files.mapNotNull { file ->
-                val id = file.nameWithoutExtension
-                try {
-                    id to MobDefinition.load(id, io.load(file), defaultDropChance)
-                } catch (t: Throwable) {
-                    logger.severe("몬스터 파일을 읽지 못했습니다 (" + file.name + "): " + t.message)
-                    null
-                }
-            }
+            files.readAll { id, config -> MobDefinition.load(id, config, defaultDropChance) }
         }) { loaded ->
             mobs.clear()
-            dirty.clear()
+            files.clearDirty()
             loaded.forEach { (id, def) -> mobs[id] = def }
             resolveInheritance()
             rebuildReplacementIndex()
@@ -162,9 +151,8 @@ class MobRegistry(
 
     fun delete(id: String): Boolean {
         val def = mobs.remove(id) ?: return false
-        dirty.remove(id)
         rebuildReplacementIndex()
-        io.asyncRun { File(folder, def.id + ".yml").delete() }
+        files.deleteFile(def.id)
         return true
     }
 
@@ -188,7 +176,7 @@ class MobRegistry(
             }
             return
         }
-        dirty.add(def.id)
+        files.markDirty(def.id)
         // Mobs already in the world are refreshed from the ticker rather than here: a GUI
         // session produces dozens of edits in a few seconds, and re-dressing every live copy on
         // each click would do the same work over and over for one visible result.
@@ -232,51 +220,21 @@ class MobRegistry(
      * Serialises pending mobs on the calling (main) thread - cheap, in-memory - and hands the
      * finished YAML to the I/O worker. Called once a second by the ticker.
      */
-    fun flushDirty() {
-        if (dirty.isEmpty()) return
-        val pending = dirty.toList()
-        dirty.removeAll(pending.toSet())
-
-        val snapshots = pending.mapNotNull { id ->
-            val def = mobs[id] ?: return@mapNotNull null
-            val config = YamlConfiguration()
-            try {
-                def.save(config)
-            } catch (t: Throwable) {
-                logger.severe("몬스터 직렬화 실패 (" + id + "): " + t.message)
-                return@mapNotNull null
-            }
-            id to config.saveToString()
-        }
-        if (snapshots.isEmpty()) return
-
-        io.asyncRun {
-            folder.mkdirs()
-            for ((id, text) in snapshots) {
-                try {
-                    File(folder, "$id.yml").writeText(HEADER + text, Charsets.UTF_8)
-                } catch (t: Throwable) {
-                    logger.severe("몬스터 저장 실패 (" + id + "): " + t.message)
-                }
-            }
-        }
-    }
+    fun flushDirty() = files.flushDirty(::render)
 
     /** Blocking flush used on shutdown, where the worker is about to stop. */
-    fun flushDirtyBlocking() {
-        if (dirty.isEmpty()) return
-        val pending = dirty.toList()
-        dirty.clear()
-        folder.mkdirs()
-        for (id in pending) {
-            val def = mobs[id] ?: continue
-            val config = YamlConfiguration()
-            try {
-                def.save(config)
-                File(folder, "$id.yml").writeText(HEADER + config.saveToString(), Charsets.UTF_8)
-            } catch (t: Throwable) {
-                logger.severe("몬스터 저장 실패 (" + id + "): " + t.message)
-            }
+    fun flushDirtyBlocking() = files.flushDirtyBlocking(::render)
+
+    /** 메인 스레드에서 돈다. 직렬화가 실패하면 남기고 건너뛴다. */
+    private fun render(id: String): YamlConfiguration? {
+        val def = mobs[id] ?: return null
+        val config = YamlConfiguration()
+        return try {
+            def.save(config)
+            config
+        } catch (t: Throwable) {
+            logger.severe("몬스터 직렬화 실패 (" + id + "): " + t.message)
+            null
         }
     }
 

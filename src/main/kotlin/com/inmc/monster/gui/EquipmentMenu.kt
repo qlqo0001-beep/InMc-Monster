@@ -1,12 +1,14 @@
 package com.inmc.monster.gui
 
 import com.inmc.monster.Monsters
-import com.inmc.monster.item.StorageMode
+import kr.inmc.core.gui.Editors
+import kr.inmc.core.gui.Icon
+import kr.inmc.core.item.StorageMode
 import com.inmc.monster.mob.EquipmentEntry
 import com.inmc.monster.mob.MobDefinition
 import com.inmc.monster.mob.MobEquipment
-import com.inmc.monster.util.Numbers
-import com.inmc.monster.util.Text
+import kr.inmc.core.util.Numbers
+import kr.inmc.core.util.Text
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryCloseEvent
@@ -141,7 +143,7 @@ class EquipmentMenu(
             val player = event.whoClicked as? Player ?: return@set
             when {
                 Editors.isPrompt(event) -> Editors.promptDouble(
-                    monsters, player, MobEquipment.label(slot) + " 드랍 확률", 0.0, 100.0, { reopen(player) },
+                    monsters.prompts, player, MobEquipment.label(slot) + " 드랍 확률", 0.0, 100.0, { reopen(player) },
                 ) { value ->
                     entry.dropChance = value
                     if (value > 0.0) warnAboutDrops(player)

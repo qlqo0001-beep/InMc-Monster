@@ -3,9 +3,9 @@ package com.inmc.monster.spawn
 import com.inmc.monster.Monsters
 import com.inmc.monster.mob.MobDefinition
 import com.inmc.monster.util.Ph
+import kr.inmc.core.store.YamlFileStore
 import org.bukkit.Location
 import org.bukkit.configuration.file.YamlConfiguration
-import java.io.File
 import java.util.concurrent.ConcurrentLinkedQueue
 
 /**
@@ -16,7 +16,8 @@ import java.util.concurrent.ConcurrentLinkedQueue
  * reboots - but it would quietly delete a world boss that nobody had killed yet. A respawn
  * timer, persisted to disk, gives that boss a way back without keeping the entity alive.
  */
-class RespawnScheduler(private val monsters: Monsters) {
+class RespawnScheduler(private val monsters: Monsters) :
+    YamlFileStore(monsters.io, listOf("respawns.yml"), header = HEADER, what = "리스폰 예약") {
 
     private class Pending(
         val mobId: String,
@@ -31,10 +32,7 @@ class RespawnScheduler(private val monsters: Monsters) {
 
     private val pending = ConcurrentLinkedQueue<Pending>()
 
-    @Volatile
-    private var dirty = false
 
-    private val file: File get() = monsters.io.file("respawns.yml")
 
     val size: Int get() = pending.size
 
@@ -51,7 +49,7 @@ class RespawnScheduler(private val monsters: Monsters) {
                 announce = announce,
             ),
         )
-        dirty = true
+        markDirty()
         if (monsters.config.debug) {
             monsters.logger.info("리스폰 예약: " + definition.id + " (" + seconds + "초 후)")
         }
@@ -71,7 +69,7 @@ class RespawnScheduler(private val monsters: Monsters) {
 
             if (now < entry.dueAt) continue
             iterator.remove()
-            dirty = true
+            markDirty()
             respawn(entry)
         }
     }
@@ -107,7 +105,7 @@ class RespawnScheduler(private val monsters: Monsters) {
         val definition = monsters.mobs.get(entry.mobId) ?: return
         val remaining = ((entry.dueAt - System.currentTimeMillis()) / 1000L).coerceAtLeast(0L)
         val ph = Ph.of()
-            .mob(com.inmc.monster.util.Text.plain(com.inmc.monster.util.Text.render(definition.displayName)))
+            .mob(kr.inmc.core.util.Text.plain(kr.inmc.core.util.Text.render(definition.displayName)))
             .time(remaining.toString() + "초")
             .world(entry.world)
         monsters.broadcast(monsters.messages.raw("respawn-warning"), ph)
@@ -117,7 +115,7 @@ class RespawnScheduler(private val monsters: Monsters) {
     fun cancel(mobId: String): Int {
         val before = pending.size
         pending.removeIf { it.mobId.equals(mobId, ignoreCase = true) }
-        if (pending.size != before) dirty = true
+        if (pending.size != before) markDirty()
         return before - pending.size
     }
 
@@ -127,47 +125,25 @@ class RespawnScheduler(private val monsters: Monsters) {
 
     // --- persistence -----------------------------------------------------------
 
-    fun load(then: () -> Unit) {
-        monsters.io.async({
-            val target = file
-            if (!target.exists()) return@async emptyList<Pending>()
-            val config = monsters.io.load(target)
-            config.getKeys(false).mapNotNull { key ->
-                val section = config.getConfigurationSection(key) ?: return@mapNotNull null
-                Pending(
-                    mobId = section.getString("mob") ?: return@mapNotNull null,
-                    world = section.getString("world") ?: return@mapNotNull null,
-                    x = section.getDouble("x"),
-                    y = section.getDouble("y"),
-                    z = section.getDouble("z"),
-                    dueAt = section.getLong("due-at"),
-                    announce = section.getBoolean("announce", true),
-                )
-            }
-        }) { loaded ->
-            pending.clear()
-            pending.addAll(loaded)
-            dirty = false
-            if (loaded.isNotEmpty()) monsters.logger.info("리스폰 예약 " + loaded.size + "건을 불러왔습니다")
-            then()
+    override fun read(config: YamlConfiguration) {
+        val loaded = config.getKeys(false).mapNotNull { key ->
+            val section = config.getConfigurationSection(key) ?: return@mapNotNull null
+            Pending(
+                mobId = section.getString("mob") ?: return@mapNotNull null,
+                world = section.getString("world") ?: return@mapNotNull null,
+                x = section.getDouble("x"),
+                y = section.getDouble("y"),
+                z = section.getDouble("z"),
+                dueAt = section.getLong("due-at"),
+                announce = section.getBoolean("announce", true),
+            )
         }
+        pending.clear()
+        pending.addAll(loaded)
+        if (loaded.isNotEmpty()) monsters.logger.info("리스폰 예약 " + loaded.size + "건을 불러왔습니다")
     }
 
-    fun flush() {
-        if (!dirty) return
-        dirty = false
-        val text = serialise()
-        monsters.io.asyncRun { write(text) }
-    }
-
-    fun flushBlocking() {
-        if (!dirty) return
-        dirty = false
-        write(serialise())
-    }
-
-    private fun serialise(): String {
-        val config = YamlConfiguration()
+    override fun write(config: YamlConfiguration) {
         pending.forEachIndexed { index, entry ->
             val section = config.createSection(index.toString())
             section.set("mob", entry.mobId)
@@ -178,17 +154,8 @@ class RespawnScheduler(private val monsters: Monsters) {
             section.set("due-at", entry.dueAt)
             section.set("announce", entry.announce)
         }
-        return config.saveToString()
     }
 
-    private fun write(text: String) {
-        try {
-            file.parentFile?.mkdirs()
-            file.writeText(HEADER + text, Charsets.UTF_8)
-        } catch (t: Throwable) {
-            monsters.logger.severe("리스폰 예약 저장 실패: " + t.message)
-        }
-    }
 
     private companion object {
         /** How far ahead of a respawn the warning broadcast goes out. */

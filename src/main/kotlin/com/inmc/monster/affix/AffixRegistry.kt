@@ -1,6 +1,6 @@
 package com.inmc.monster.affix
 
-import com.inmc.monster.config.ConfigService
+import kr.inmc.core.config.ConfigService
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.EntityType
 import java.io.File

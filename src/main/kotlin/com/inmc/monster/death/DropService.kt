@@ -7,7 +7,7 @@ import com.inmc.monster.mob.LootRoller
 import com.inmc.monster.mob.MobDrop
 import com.inmc.monster.runtime.ActiveMob
 import com.inmc.monster.util.Ph
-import com.inmc.monster.util.Text
+import kr.inmc.core.util.Text
 import org.bukkit.Location
 import org.bukkit.NamespacedKey
 import org.bukkit.entity.Item
@@ -44,12 +44,14 @@ class DropService(private val monsters: Monsters) {
      * multiplier of 3 on an already-common drop must not silently exceed 100%.
      */
     fun roll(mob: ActiveMob, table: DropTable, killer: Player?): List<RolledDrop> {
-        if (table.entries.isEmpty()) return emptyList()
+        // 커스텀아이템 쪽에서 "몬스터 드랍" 역할로 더한 것도 같이 굴린다(MonsterRoles).
+        val entries = table.entries + com.inmc.monster.mob.MonsterRoles.extraDrops(mob, table)
+        if (entries.isEmpty()) return emptyList()
 
         val worldSettings = monsters.worlds.of(mob.entity.world)
         val multiplier = table.chanceMultiplier * mob.dropMultiplier() * worldSettings.dropMultiplier
 
-        val eligible = table.entries.filter { entry ->
+        val eligible = entries.filter { entry ->
             entry.minLevel <= mob.level && matchesTool(entry, killer)
         }
         if (eligible.isEmpty()) return emptyList()

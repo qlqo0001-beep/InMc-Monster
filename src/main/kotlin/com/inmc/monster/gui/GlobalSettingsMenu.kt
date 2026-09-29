@@ -1,8 +1,10 @@
 package com.inmc.monster.gui
 
 import com.inmc.monster.Monsters
-import com.inmc.monster.util.Numbers
-import com.inmc.monster.util.Text
+import kr.inmc.core.gui.Editors
+import kr.inmc.core.gui.Icon
+import kr.inmc.core.util.Numbers
+import kr.inmc.core.util.Text
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason
@@ -118,7 +120,7 @@ class GlobalSettingsMenu(monsters: Monsters) : Menu(monsters, 54, TITLE) {
         ) { event ->
             val player = event.whoClicked as? Player ?: return@set
             Editors.promptText(
-                monsters, player, "치환할 스폰 사유를 입력하세요. (쉼표로 여러 개)",
+                monsters.prompts, player, "치환할 스폰 사유를 입력하세요. (쉼표로 여러 개)",
                 listOf(
                     "<gray>예: <white>NATURAL</white>  또는  <white>NATURAL, PATROL</white></gray>",
                     "<red>하나씩, 의도를 가지고 추가하세요.</red>",
@@ -273,7 +275,7 @@ class GlobalSettingsMenu(monsters: Monsters) : Menu(monsters, 54, TITLE) {
             if (Editors.isPrompt(event)) {
                 val player = event.whoClicked as? Player ?: return@set
                 Editors.promptInt(
-                    monsters, player, name, 0, 100_000, { GlobalSettingsMenu(monsters).open(player) },
+                    monsters.prompts, player, name, 0, 100_000, { GlobalSettingsMenu(monsters).open(player) },
                 ) { writeAndReload(player, path, it) }
                 return@set
             }

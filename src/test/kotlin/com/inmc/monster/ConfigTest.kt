@@ -2,6 +2,7 @@ package com.inmc.monster
 
 import com.inmc.monster.affix.Affix
 import com.inmc.monster.config.Messages
+import kr.inmc.core.config.MessageCatalog
 import com.inmc.monster.config.PluginConfig
 import com.inmc.monster.config.WorldSettings
 import com.inmc.monster.mob.MobDefinition
@@ -256,7 +257,7 @@ class MessagesTest {
     fun `missing keys fall back to the built-in default`() {
         val messages = Messages.from(YamlConfiguration())
         assertTrue(messages.raw("mob-unknown").isNotEmpty())
-        assertTrue(messages.raw(Messages.PREFIX).isNotEmpty())
+        assertTrue(messages.raw(MessageCatalog.PREFIX).isNotEmpty())
     }
 
     @Test
@@ -386,11 +387,25 @@ class BundledResourceTest {
     }
 
     @Test
-    fun `every declared dependency is optional and load-order free`() {
+    fun `inmc-core is the only required dependency`() {
+        val yaml = load("paper-plugin.yml")
+        val entry = yaml.getConfigurationSection("dependencies.server.inmc-core")
+        assertNotNull(entry, "inmc-core 의존 선언이 없습니다")
+        // core 는 kotlin-stdlib 과 공용 프레임워크를 들고 있다. 없으면 우리는 한 줄도 못 돈다.
+        assertTrue(entry.getBoolean("required"), "inmc-core 는 required 여야 합니다")
+        // BEFORE = 의존이 우리보다 먼저 로드된다. 반대로 걸면 클래스로더가 붙지 않는다.
+        assertEquals("BEFORE", entry.getString("load"), "inmc-core 는 load: BEFORE 여야 합니다")
+        assertTrue(entry.getBoolean("join-classpath"), "inmc-core 의 클래스패스를 붙여야 합니다")
+    }
+
+    @Test
+    fun `every declared dependency except inmc-core is optional and load-order free`() {
         val yaml = load("paper-plugin.yml")
         val section = yaml.getConfigurationSection("dependencies.server")
         assertNotNull(section)
         for (plugin in section.getKeys(false)) {
+            // core 는 유일한 예외이며 바로 위 테스트가 따로 지킨다.
+            if (plugin == "inmc-core") continue
             val entry = section.getConfigurationSection(plugin)
             assertNotNull(entry, "$plugin has no settings")
             assertFalse(entry.getBoolean("required", true), "$plugin must not be required")

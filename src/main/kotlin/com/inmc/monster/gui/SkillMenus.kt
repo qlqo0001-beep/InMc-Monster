@@ -8,8 +8,11 @@ import com.inmc.monster.skill.SkillInstance
 import com.inmc.monster.skill.SkillParam
 import com.inmc.monster.skill.SkillTrigger
 import com.inmc.monster.skill.TargetSelector
-import com.inmc.monster.util.Numbers
-import com.inmc.monster.util.Text
+import kr.inmc.core.gui.Editors
+import kr.inmc.core.gui.Icon
+import kr.inmc.core.gui.Paging
+import kr.inmc.core.util.Numbers
+import kr.inmc.core.util.Text
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.ClickType
@@ -26,10 +29,12 @@ class SkillListMenu(
         fillEmpty(Icon.EDGE)
 
         val skills = definition.skills
-        val pages = maxOf(1, (skills.size + CONTENT + 1) / CONTENT)
+        // 예전에는 `+ CONTENT + 1` 이었다 — 항목 수가 CONTENT 의 배수일 때 빈 페이지가
+        // 하나 더 생겼다. 24벌로 복사돼 있던 계산을 한곳에 모으면서 드러난 버그다.
+        val pages = Paging.pageCount(skills.size, CONTENT)
         page = page.coerceIn(0, pages - 1)
 
-        skills.drop(page * CONTENT).take(CONTENT).forEachIndexed { index, instance ->
+        Paging.slice(skills, page, CONTENT).forEachIndexed { index, instance ->
             val skill = monsters.skills.registry[instance.skillId]
             set(index, iconFor(instance, skill)) { event ->
                 val player = event.whoClicked as? Player ?: return@set
@@ -55,12 +60,12 @@ class SkillListMenu(
 
         for (slot in CONTENT until 54) set(slot, Icon.EDGE)
 
-        set(45, Icon.back()) { event ->
+        set(Paging.SLOT_BACK, Icon.back()) { event ->
             (event.whoClicked as? Player)?.let { MobManageMenu(monsters, definition).open(it) }
         }
 
-        if (page > 0) set(46, Icon.prevPage()) { event -> switchPage(event.whoClicked, page - 1) }
-        if (page < pages - 1) set(47, Icon.nextPage()) { event -> switchPage(event.whoClicked, page + 1) }
+        if (page > 0) set(Paging.SLOT_PREV, Icon.prevPage()) { event -> switchPage(event.whoClicked, page - 1) }
+        if (page < pages - 1) set(Paging.SLOT_NEXT, Icon.nextPage()) { event -> switchPage(event.whoClicked, page + 1) }
 
         set(
             49,
@@ -176,10 +181,10 @@ class SkillPickerMenu(
         fillEmpty(Icon.EDGE)
 
         val all = monsters.skills.registry.all()
-        val pages = maxOf(1, (all.size + CONTENT - 1) / CONTENT)
+        val pages = Paging.pageCount(all.size, CONTENT)
         page = page.coerceIn(0, pages - 1)
 
-        all.drop(page * CONTENT).take(CONTENT).forEachIndexed { index, skill ->
+        Paging.slice(all, page, CONTENT).forEachIndexed { index, skill ->
             val unavailable = monsters.skills.registry.unavailableReason(skill)
             set(
                 index,
@@ -212,11 +217,11 @@ class SkillPickerMenu(
 
         for (slot in CONTENT until 54) set(slot, Icon.EDGE)
 
-        set(45, Icon.back()) { event ->
+        set(Paging.SLOT_BACK, Icon.back()) { event ->
             (event.whoClicked as? Player)?.let { SkillListMenu(monsters, definition).open(it) }
         }
-        if (page > 0) set(46, Icon.prevPage()) { event -> switch(event.whoClicked, page - 1) }
-        if (page < pages - 1) set(47, Icon.nextPage()) { event -> switch(event.whoClicked, page + 1) }
+        if (page > 0) set(Paging.SLOT_PREV, Icon.prevPage()) { event -> switch(event.whoClicked, page - 1) }
+        if (page < pages - 1) set(Paging.SLOT_NEXT, Icon.nextPage()) { event -> switch(event.whoClicked, page + 1) }
         set(53, Icon.close()) { event -> event.whoClicked.closeInventory() }
     }
 
@@ -244,7 +249,7 @@ class SkillDetailMenu(
         val skill = monsters.skills.registry[instance.skillId]
         if (skill == null) {
             set(22, Icon.of(Material.BARRIER, "<red>스킬을 찾을 수 없습니다</red>", "<gray>" + instance.skillId + "</gray>"))
-            set(45, Icon.back()) { event -> back(event.whoClicked) }
+            set(Paging.SLOT_BACK, Icon.back()) { event -> back(event.whoClicked) }
             return
         }
 
@@ -327,7 +332,7 @@ class SkillDetailMenu(
         ) { event ->
             if (Editors.isPrompt(event)) {
                 val player = event.whoClicked as? Player ?: return@set
-                Editors.promptInt(monsters, player, "쿨다운 (틱)", 1, 72_000, { reopen(player) }) {
+                Editors.promptInt(monsters.prompts, player, "쿨다운 (틱)", 1, 72_000, { reopen(player) }) {
                     instance.cooldownTicks = it
                     save()
                 }
@@ -346,7 +351,7 @@ class SkillDetailMenu(
         ) { event ->
             if (Editors.isPrompt(event)) {
                 val player = event.whoClicked as? Player ?: return@set
-                Editors.promptDouble(monsters, player, "발동 확률", 0.01, 100.0, { reopen(player) }) {
+                Editors.promptDouble(monsters.prompts, player, "발동 확률", 0.01, 100.0, { reopen(player) }) {
                     instance.chance = it
                     save()
                 }
@@ -436,7 +441,7 @@ class SkillDetailMenu(
         ) { event ->
             val player = event.whoClicked as? Player ?: return@set
             Editors.promptText(
-                monsters, player, "사용할 페이즈 이름을 입력하세요. (쉼표로 여러 개)",
+                monsters.prompts, player, "사용할 페이즈 이름을 입력하세요. (쉼표로 여러 개)",
                 listOf(
                     "<gray>등록된 페이즈: " +
                         (if (definition.phases.isEmpty()) "없음" else definition.phases.joinToString(", ") { it.name }) +
@@ -483,7 +488,7 @@ class SkillDetailMenu(
             save(); redraw(event.whoClicked)
         }
 
-        set(45, Icon.back()) { event -> back(event.whoClicked) }
+        set(Paging.SLOT_BACK, Icon.back()) { event -> back(event.whoClicked) }
 
         set(
             53,
@@ -537,22 +542,22 @@ class SkillParamMenu(
         fillEmpty(Icon.EDGE)
 
         val params = skill.parameters
-        val pages = maxOf(1, (params.size + CONTENT - 1) / CONTENT)
+        val pages = Paging.pageCount(params.size, CONTENT)
         page = page.coerceIn(0, pages - 1)
 
-        params.drop(page * CONTENT).take(CONTENT).forEachIndexed { index, param ->
+        Paging.slice(params, page, CONTENT).forEachIndexed { index, param ->
             set(index, iconFor(param)) { event -> handle(event, param) }
         }
 
         for (slot in CONTENT until 54) set(slot, Icon.EDGE)
 
-        set(45, Icon.back()) { event ->
+        set(Paging.SLOT_BACK, Icon.back()) { event ->
             (event.whoClicked as? Player)?.let {
                 SkillDetailMenu(monsters, definition, instance, returnPage).open(it)
             }
         }
-        if (page > 0) set(46, Icon.prevPage()) { event -> switch(event.whoClicked, page - 1) }
-        if (page < pages - 1) set(47, Icon.nextPage()) { event -> switch(event.whoClicked, page + 1) }
+        if (page > 0) set(Paging.SLOT_PREV, Icon.prevPage()) { event -> switch(event.whoClicked, page - 1) }
+        if (page < pages - 1) set(Paging.SLOT_NEXT, Icon.nextPage()) { event -> switch(event.whoClicked, page + 1) }
 
         set(
             49,
@@ -633,7 +638,7 @@ class SkillParamMenu(
             ParamType.INT -> {
                 if (Editors.isPrompt(event)) {
                     Editors.promptInt(
-                        monsters, player, param.label, param.min.toInt(), param.max.toInt(), { reopen(player) },
+                        monsters.prompts, player, param.label, param.min.toInt(), param.max.toInt(), { reopen(player) },
                     ) { instance.values[param.key] = it; save() }
                     return
                 }
@@ -646,7 +651,7 @@ class SkillParamMenu(
             ParamType.DOUBLE -> {
                 if (Editors.isPrompt(event)) {
                     Editors.promptDouble(
-                        monsters, player, param.label, param.min, param.max, { reopen(player) },
+                        monsters.prompts, player, param.label, param.min, param.max, { reopen(player) },
                     ) { instance.values[param.key] = it; save() }
                     return
                 }
@@ -664,7 +669,7 @@ class SkillParamMenu(
 
             else -> {
                 Editors.promptText(
-                    monsters, player, param.label + " 값을 입력하세요.",
+                    monsters.prompts, player, param.label + " 값을 입력하세요.",
                     hintsFor(param),
                     reopen = { reopen(player) },
                 ) { input ->
@@ -738,10 +743,10 @@ class SkillCatalogMenu(
         fillEmpty(Icon.EDGE)
 
         val all = monsters.skills.registry.all()
-        val pages = maxOf(1, (all.size + CONTENT - 1) / CONTENT)
+        val pages = Paging.pageCount(all.size, CONTENT)
         page = page.coerceIn(0, pages - 1)
 
-        all.drop(page * CONTENT).take(CONTENT).forEachIndexed { index, skill ->
+        Paging.slice(all, page, CONTENT).forEachIndexed { index, skill ->
             val unavailable = monsters.skills.registry.unavailableReason(skill)
             set(
                 index,
@@ -769,9 +774,9 @@ class SkillCatalogMenu(
 
         for (slot in CONTENT until 54) set(slot, Icon.EDGE)
 
-        set(45, Icon.back()) { event -> (event.whoClicked as? Player)?.let { MainMenu(monsters).open(it) } }
-        if (page > 0) set(46, Icon.prevPage()) { event -> switch(event.whoClicked, page - 1) }
-        if (page < pages - 1) set(47, Icon.nextPage()) { event -> switch(event.whoClicked, page + 1) }
+        set(Paging.SLOT_BACK, Icon.back()) { event -> (event.whoClicked as? Player)?.let { MainMenu(monsters).open(it) } }
+        if (page > 0) set(Paging.SLOT_PREV, Icon.prevPage()) { event -> switch(event.whoClicked, page - 1) }
+        if (page < pages - 1) set(Paging.SLOT_NEXT, Icon.nextPage()) { event -> switch(event.whoClicked, page + 1) }
         set(53, Icon.close()) { event -> event.whoClicked.closeInventory() }
     }
 

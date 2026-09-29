@@ -2,8 +2,10 @@ package com.inmc.monster.gui
 
 import com.inmc.monster.Monsters
 import com.inmc.monster.mob.MobDefinition
-import com.inmc.monster.util.Numbers
-import com.inmc.monster.util.Text
+import kr.inmc.core.gui.Editors
+import kr.inmc.core.gui.Icon
+import kr.inmc.core.util.Numbers
+import kr.inmc.core.util.Text
 import org.bukkit.Material
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.Player
@@ -89,7 +91,7 @@ class ReplacementMenu(
         ) { event ->
             if (Editors.isPrompt(event)) {
                 val player = event.whoClicked as? Player ?: return@set
-                Editors.promptDouble(monsters, player, "치환 확률", 0.0, 100.0, { reopen(player) }) {
+                Editors.promptDouble(monsters.prompts, player, "치환 확률", 0.0, 100.0, { reopen(player) }) {
                     settings.chance = it
                     monsters.mobs.rebuildReplacementIndex()
                     save()
@@ -132,7 +134,7 @@ class ReplacementMenu(
         ) { event ->
             val player = event.whoClicked as? Player ?: return@set
             Editors.promptText(
-                monsters, player, "치환할 엔티티 종류를 입력하세요. (쉼표로 여러 개)",
+                monsters.prompts, player, "치환할 엔티티 종류를 입력하세요. (쉼표로 여러 개)",
                 listOf(
                     "<gray>예: <white>ZOMBIE, HUSK, DROWNED</white></gray>",
                     "<gray>'없음' 을 입력하면 자기 종류만 치환합니다.</gray>",

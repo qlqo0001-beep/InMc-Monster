@@ -1,12 +1,12 @@
 package com.inmc.monster
 
-import com.inmc.monster.item.ItemRef
-import com.inmc.monster.item.StorageMode
-import com.inmc.monster.item.StoredItem
+import kr.inmc.core.item.ItemRef
+import kr.inmc.core.item.StorageMode
+import kr.inmc.core.item.StoredItem
 import com.inmc.monster.mob.MobDefinition
-import com.inmc.monster.util.Numbers
+import kr.inmc.core.util.Numbers
 import com.inmc.monster.util.Ph
-import com.inmc.monster.util.Text
+import kr.inmc.core.util.Text
 import org.bukkit.Material
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.EntityType

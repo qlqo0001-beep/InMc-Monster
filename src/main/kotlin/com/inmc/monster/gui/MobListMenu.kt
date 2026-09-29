@@ -3,7 +3,10 @@ package com.inmc.monster.gui
 import com.inmc.monster.Monsters
 import com.inmc.monster.mob.MobDefinition
 import com.inmc.monster.mob.MobRegistry
-import com.inmc.monster.util.Text
+import kr.inmc.core.gui.ConfirmMenu
+import kr.inmc.core.gui.Icon
+import kr.inmc.core.gui.Paging
+import kr.inmc.core.util.Text
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.ClickType
@@ -24,10 +27,10 @@ class MobListMenu(
         fillEmpty(Icon.EDGE)
 
         val all = monsters.mobs.all()
-        val pages = maxOf(1, (all.size + CONTENT_SIZE - 1) / CONTENT_SIZE)
+        val pages = Paging.pageCount(all.size, CONTENT_SIZE)
         page = page.coerceIn(0, pages - 1)
 
-        all.drop(page * CONTENT_SIZE).take(CONTENT_SIZE).forEachIndexed { index, definition ->
+        Paging.slice(all, page, CONTENT_SIZE).forEachIndexed { index, definition ->
             set(index, iconFor(definition)) { event ->
                 val player = event.whoClicked as? Player ?: return@set
                 when (event.click) {
@@ -57,10 +60,12 @@ class MobListMenu(
 
         for (slot in CONTENT_SIZE until SIZE) set(slot, Icon.EDGE)
 
-        set(45, Icon.back()) { event -> (event.whoClicked as? Player)?.let { MainMenu(monsters).open(it) } }
+        set(Paging.SLOT_BACK, Icon.back()) { event ->
+            (event.whoClicked as? Player)?.let { MainMenu(monsters).open(it) }
+        }
 
-        if (page > 0) set(46, Icon.prevPage()) { event -> switchPage(event.whoClicked, page - 1) }
-        if (page < pages - 1) set(47, Icon.nextPage()) { event -> switchPage(event.whoClicked, page + 1) }
+        if (page > 0) set(Paging.SLOT_PREV, Icon.prevPage()) { event -> switchPage(event.whoClicked, page - 1) }
+        if (page < pages - 1) set(Paging.SLOT_NEXT, Icon.nextPage()) { event -> switchPage(event.whoClicked, page + 1) }
 
         set(
             49,
@@ -94,8 +99,8 @@ class MobListMenu(
         val lore = mutableListOf(
             "<gray>표시명: " + definition.displayName + "</gray>",
             "<gray>종류: <white>" + definition.entityType.name + "</white></gray>",
-            "<gray>체력: <red>" + com.inmc.monster.util.Numbers.chance(definition.maxHealth()) + "</red>" +
-                "   공격력: <red>" + com.inmc.monster.util.Numbers.chance(definition.stats.getOrZero("ATTACK_DAMAGE")) + "</red></gray>",
+            "<gray>체력: <red>" + kr.inmc.core.util.Numbers.chance(definition.maxHealth()) + "</red>" +
+                "   공격력: <red>" + kr.inmc.core.util.Numbers.chance(definition.stats.getOrZero("ATTACK_DAMAGE")) + "</red></gray>",
             "<gray>드랍: <white>" + definition.drops.entries.size + "종</white>" +
                 "   스킬: <white>" + definition.skills.size + "개</white>" +
                 "   페이즈: <white>" + definition.phases.size + "</white></gray>",
@@ -111,7 +116,7 @@ class MobListMenu(
         if (definition.replacement.enabled) {
             lore.add(
                 "<light_purple>자연 스폰 치환 " +
-                    com.inmc.monster.util.Numbers.chance(definition.replacement.chance) + "%</light_purple>",
+                    kr.inmc.core.util.Numbers.chance(definition.replacement.chance) + "%</light_purple>",
             )
         }
         if (!definition.enabled) lore.add("<red>비활성화됨</red>")
