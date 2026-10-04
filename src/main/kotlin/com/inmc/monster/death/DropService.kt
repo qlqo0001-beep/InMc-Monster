@@ -49,7 +49,8 @@ class DropService(private val monsters: Monsters) {
         if (entries.isEmpty()) return emptyList()
 
         val worldSettings = monsters.worlds.of(mob.entity.world)
-        val multiplier = table.chanceMultiplier * mob.dropMultiplier() * worldSettings.dropMultiplier
+        // 드랍 이벤트 배율(inmc-drops) — 같이 2배가 되게(테섭 2026-10-04). 어픽스 추가드랍도 같은 roll 을 타므로 함께 오른다.
+        val multiplier = table.chanceMultiplier * mob.dropMultiplier() * worldSettings.dropMultiplier * monsters.dropsBoost.factor()
 
         val eligible = entries.filter { entry ->
             entry.minLevel <= mob.level && matchesTool(entry, killer)
@@ -209,7 +210,7 @@ class DropService(private val monsters: Monsters) {
             .level(mob.level)
             .item(drop.entry.label())
             .location(mob.entity.location)
-        receiver?.let { ph.player(it) }
+        receiver?.let { ph.player(kr.inmc.core.integration.TitleForgeNames.displayName(it.uniqueId, it.name)) }
 
         for (raw in drop.entry.commands) {
             val command = Text.plain(ph.apply(raw)).removePrefix("/")
@@ -225,7 +226,7 @@ class DropService(private val monsters: Monsters) {
     private fun announce(mob: ActiveMob, drop: RolledDrop, receiver: Player) {
         if (!drop.entry.announce || !monsters.config.dropDefaults.announce) return
         val ph = Ph.of()
-            .player(receiver)
+            .player(kr.inmc.core.integration.TitleForgeNames.displayName(receiver.uniqueId, receiver.name))
             .mob(mob.displayName)
             .item(drop.entry.label())
             .location(mob.entity.location)
