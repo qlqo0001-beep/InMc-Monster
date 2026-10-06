@@ -43,7 +43,7 @@ class DeathHandler(private val monsters: Monsters) {
         handleAffixDrops(mob, event, killer)
 
         if (monsters.config.display.announceDeath && killer != null && definition != null) {
-            val ph = Ph.of().player(killer).mob(mob.displayName).location(location).level(mob.level)
+            val ph = Ph.of().player(kr.inmc.core.integration.TitleForgeNames.displayName(killer.uniqueId, killer.name)).mob(mob.displayName).location(location).level(mob.level)
             monsters.broadcast(monsters.messages.raw("mob-death-announce"), ph)
         }
 

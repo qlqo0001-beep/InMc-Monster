@@ -20,6 +20,7 @@ import kr.inmc.core.input.ChatPrompt
 import kr.inmc.core.integration.CustomItemHook
 import kr.inmc.core.integration.EconomyHook
 import kr.inmc.core.integration.MMOItemsHook
+import com.inmc.monster.integration.DropsBoostHook
 import com.inmc.monster.integration.MagicSpellsHook
 import com.inmc.monster.integration.ModelHook
 import com.inmc.monster.integration.MythicLibHook
@@ -74,6 +75,7 @@ class Monsters(override val plugin: JavaPlugin) : InmcHost {
     val magicSpells = MagicSpellsHook(logger)
     val economy = EconomyHook(logger)
     val regions = RegionHook(logger)
+    val dropsBoost = DropsBoostHook(logger)
     val papi = PapiHook(this)
 
     // --- item layer -------------------------------------------------------------

@@ -137,6 +137,16 @@ class MainMenu(monsters: Monsters) : Menu(monsters, 45, TITLE) {
             }
         }
 
+        set(
+            36,
+            Icon.of(
+                Material.COMPASS, "<gold>어드민 메뉴로</gold>",
+                "<gray>각 플러그인 설정 허브로 돌아갑니다.</gray>",
+                "",
+                "<yellow>▶ 클릭</yellow>",
+            ),
+        ) { event -> (event.whoClicked as? Player)?.performCommand("메뉴 어드민") }
+
         set(44, Icon.close()) { event -> event.whoClicked.closeInventory() }
     }
 
