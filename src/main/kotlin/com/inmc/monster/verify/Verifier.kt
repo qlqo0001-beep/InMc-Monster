@@ -83,6 +83,8 @@ class Verifier(private val monsters: Monsters) {
             },
             Check("소환(드랍 없음·예산 제외) → 태그로 세고 → 정리") { m, p ->
                 val def = m.mobs.all().firstOrNull { !it.hasPhases } ?: m.mobs.all().firstOrNull() ?: return@Check "$SKIP 정의가 없습니다"
+                // 평화로움 난이도에서는 서버가 적대 몹 생성을 거부한다(테섭 spawn 월드) — 다른 월드에서 돌려야 본다.
+                if (p.world.difficulty == org.bukkit.Difficulty.PEACEFUL) return@Check "$SKIP '${p.world.name}' 은 평화로움 난이도라 몹을 못 만듭니다 — 다른 월드에서"
                 val at = p.location.block.getRelative(0, 4, 0).location.add(0.5, 0.0, 0.5)
                 val mob = m.api.spawn(def.id, at, SpawnOptions(tag = TAG, dropsEnabled = false, countsTowardBudget = false, ignoreRules = true, announce = false))
                     ?: return@Check "소환 실패: " + (m.api.lastRefusal() ?: "이유 없음")
