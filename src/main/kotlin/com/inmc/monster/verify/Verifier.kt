@@ -95,12 +95,11 @@ class Verifier(private val monsters: Monsters) {
                     ?: ok(m.api.countWithTag(TAG) == 0, "정리했는데 태그 수가 ${m.api.countWithTag(TAG)}")
                     ?: ok(mob.entity.isDead || !mob.entity.isValid, "정리했는데 개체가 살아 있습니다")
             },
-            Check("수식어 — 정의가 있고 배율 계산이 맞다") { m, _ ->
+            Check("수식어 — 정의가 읽혔고 id 가 비어 있지 않다") { m, _ ->
                 val affixes = m.affixes.all()
                 if (affixes.isEmpty()) return@Check "$SKIP 수식어 정의가 없습니다"
-                val first = affixes.first()
-                val scaled = first.apply(100.0)
-                ok(scaled.isFinite(), "'${first.id}' 의 배율 계산이 ${scaled}")
+                ok(affixes.all { it.id.isNotBlank() }, "id 가 빈 수식어가 있습니다")
+                    ?: ok(affixes.map { it.id.lowercase() }.toSet().size == affixes.size, "id 가 겹치는 수식어가 있습니다")
             },
             Check("월드 설정 — 지금 월드의 설정을 읽는다") { m, p ->
                 ok(m.worlds.of(p.world).world.equals(p.world.name, ignoreCase = true) || m.worlds.all().isEmpty(), "'${p.world.name}' 설정이 ${m.worlds.of(p.world).world} 로 읽힙니다")
