@@ -275,14 +275,20 @@ class SkillDetailMenu(
                 buildList {
                     add("<gray>현재: <white>" + instance.trigger.label + "</white></gray>")
                     add("<dark_gray>" + instance.trigger.description + "</dark_gray>")
-                    add("")
-                    addAll(Editors.optionList(SkillTrigger.entries.toList(), instance.trigger) { it.label })
-                    addAll(Editors.cycleHint)
+                    addAll(Editors.pickHint)
                 },
             ),
         ) { event ->
-            instance.trigger = Editors.cycle(event, SkillTrigger.entries.toList(), instance.trigger)
-            save(); redraw(event.whoClicked)
+            // 발동 조건 9개 — 고르는 화면으로(2026-10-08).
+            val player = event.whoClicked as? Player ?: return@set
+            kr.inmc.core.gui.PickMenu(
+                monsters, player, "발동 조건 고르기", SkillTrigger.entries.toList(),
+                icon = { Icon.of(if (it == instance.trigger) Material.LIME_DYE else Material.GRAY_DYE, "<yellow>" + it.label + "</yellow>", listOf("<dark_gray>" + it.description + "</dark_gray>")) },
+                back = { reopen(player) },
+            ) { picked ->
+                instance.trigger = picked
+                save(); reopen(player)
+            }.show()
         }
 
         // Only the selectors this skill can act on are offered. A leap aimed at its own caster
@@ -602,11 +608,15 @@ class SkillParamMenu(
 
             ParamType.ENUM -> {
                 lore.add("")
-                param.options.forEach { option ->
-                    val marker = if (option == value.toString()) "<green>▶</green>" else "<dark_gray>·</dark_gray>"
-                    lore.add(marker + " <dark_gray>" + option + "</dark_gray>")
+                if (param.options.size >= Editors.PICK_FROM) {
+                    lore.addAll(Editors.pickHint.drop(1))
+                } else {
+                    param.options.forEach { option ->
+                        val marker = if (option == value.toString()) "<green>▶</green>" else "<dark_gray>·</dark_gray>"
+                        lore.add(marker + " <dark_gray>" + option + "</dark_gray>")
+                    }
+                    lore.addAll(Editors.cycleHint)
                 }
-                lore.addAll(Editors.cycleHint)
             }
 
             else -> {
@@ -663,6 +673,18 @@ class SkillParamMenu(
 
             ParamType.ENUM -> {
                 val value = current(param).toString()
+                if (param.options.size >= Editors.PICK_FROM) {
+                    // 보기가 많은 열거 인자는 고르는 화면으로(2026-10-08).
+                    kr.inmc.core.gui.PickMenu(
+                        monsters, player, param.label + " 고르기", param.options,
+                        icon = { Icon.of(if (it == value) Material.LIME_DYE else Material.GRAY_DYE, "<yellow>$it</yellow>") },
+                        back = { reopen(player) },
+                    ) { picked ->
+                        instance.values[param.key] = picked
+                        save(); reopen(player)
+                    }.show()
+                    return
+                }
                 instance.values[param.key] = Editors.cycle(event, param.options, value)
                 save(); redraw(player)
             }

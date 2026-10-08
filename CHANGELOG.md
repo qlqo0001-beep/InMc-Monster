@@ -2,6 +2,29 @@
 
 ---
 
+## 미배포 — 검증기 `/몹 검증`(2026-10-08)
+
+- `/몹 검증` — 서버 안 자동 검증(2026-10-08, 드랍·상점 검증기와 같은 틀). 결과는 채팅 + `plugins/<플러그인>/verify/` 파일. 정의 · 스킬 레지스트리(정의가 쓰는 스킬 id 가 전부 등록됐는지) · 머리 위 소환(드랍 없음·예산 제외·규칙 무시, 태그 `zz_verify`)→태그로 세기→정리 ·
+  수식어 배율 계산 · 월드 설정 · 관리 화면. 스킬은 쏘지 않는다(`/몹 스킬테스트` 로).
+
+## 미배포 — 긴 목록은 고르는 화면으로 · 값 입력은 입력창(2026-10-08)
+
+- 스킬 발동 조건(9)·트리거 발동 종류(13)와 보기가 7개 이상인 열거 인자(스킬·행동)가 좌/우클릭 순환 대신 **고르는 화면**(core `PickMenu`)을 연다.
+- 값 입력 65곳이 core `ChatPrompt` 를 거쳐 전부 **입력창**이 됐다.
+
+## 미배포 — 켤 때 "미설치" 석 줄을 한 줄로(2026-10-08)
+
+- MythicLib·MythicMobs·MagicSpells 이 없으면 훅마다 한 줄씩 찍던 것을 `Monsters.setupIntegrations` 가 "선택 연동 없음: …" 한 줄로 모은다.
+  늦게 켜진 플러그인 때문에 다시 돌 때(`refreshIntegrations`) 같은 말은 반복하지 않는다. MMOItems 미설치는 core 가 한 번만 알린다.
+
+## 미배포 — 커스텀 몹이 플레이어를 치면 서버가 죽던 것(2026-10-08)
+
+- **MythicLib 이 없는 서버**에서 커스텀 몹의 근접·스킬 피해가 끝없이 돌아 서버가 `StackOverflowError` 로 내려갔다(던전 시험 중 테섭에서).
+  `DamageBridge.apply` 가 `target.damage(amount, mob)` 로 넣으면 그 호출이 `EntityDamageByEntityEvent` 를 새로 쏘고, `CombatListener.onDamageByEntity`
+  가 그것을 또 "우리 몹의 공격"으로 받아 `apply` 를 다시 불렀다. 재진입 막기(`hasRegisteredAttack`)가 MythicLib 경로에만 있었다.
+- 고침: `DamageBridge.isApplying()` — 우리 `damage()` 호출(근접·스킬·가시 반사) 동안 서는 표시. 리스너는 그 사건에 손대지 않는다.
+  모든 피해가 `DamageBridge` 한 곳을 지나므로(스킬은 `Act.damage → applySkill`) 이것으로 막힌다. 테스트 153 통과, 테섭에서 몹에게 맞아도 그대로 진행 확인.
+
 ## 미배포 — 드랍 이벤트 배율 연동·방송 닉네임 표시
 
 - 테섭 "드랍 2배가 몬스터에도 같이" — `death/DropService.roll` 의 확률 배율에 inmc-drops 이벤트 배율을 곱한다

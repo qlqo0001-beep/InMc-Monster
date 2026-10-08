@@ -26,6 +26,10 @@ class Messages(values: Map<String, String>) : MessageCatalog<Ph>(values, DEFAULT
 
             "reloading" to "<gray>설정을 다시 읽는 중...</gray>",
             "reloaded" to "<green>설정을 다시 읽었습니다. <gray>(몬스터 {개수}종)</gray></green>",
+            "verify-done" to "<gold>몬스터 검증</gold> <gray>— 통과 <green>{개수}</green> · 실패 <red>{몬스터}</red>{아이템}</gray>",
+            "verify-failure" to "<red> ✘ {아이템}</red>",
+            "verify-skipped" to "<gray> – {아이템}</gray>",
+            "verify-report" to "<gray>결과 파일: <white>{아이템}</white></gray>",
             "reload-menu-closed" to "<gray>설정을 다시 읽어 열려 있던 창을 닫았습니다. 다시 열어주세요.</gray>",
 
             "mob-unknown" to "<red>'{몬스터}' 이라는 몬스터를 찾을 수 없습니다.</red>",

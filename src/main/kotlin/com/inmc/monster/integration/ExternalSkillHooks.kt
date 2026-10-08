@@ -29,10 +29,8 @@ class MythicMobsHook(private val logger: Logger) {
         castSkill = null
         skillExists = null
 
-        if (!Bukkit.getPluginManager().isPluginEnabled("MythicMobs")) {
-            logger.info("MythicMobs 미설치 - MythicMobs 스킬 호출은 무시됩니다")
-            return
-        }
+        // 미설치는 Monsters.setupIntegrations 가 다른 선택 연동과 묶어 한 줄로 알린다.
+        if (!Bukkit.getPluginManager().isPluginEnabled("MythicMobs")) return
         try {
             val bukkitClass = PluginClasses.require("MythicMobs", "io.lumine.mythic.bukkit.MythicBukkit")
             val instance = bukkitClass.getMethod("inst").invoke(null)
@@ -92,10 +90,7 @@ class MagicSpellsHook(private val logger: Logger) {
         getSpellByName = null
         castMethod = null
 
-        if (!Bukkit.getPluginManager().isPluginEnabled("MagicSpells")) {
-            logger.info("MagicSpells 미설치 - MagicSpells 스펠 호출은 무시됩니다")
-            return
-        }
+        if (!Bukkit.getPluginManager().isPluginEnabled("MagicSpells")) return
         try {
             val magicSpells = PluginClasses.require("MagicSpells", "com.nisovin.magicspells.MagicSpells")
             getSpellByName = magicSpells.methods.firstOrNull {

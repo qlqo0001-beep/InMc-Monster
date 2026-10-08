@@ -403,11 +403,15 @@ class ActionDetailMenu(
 
             ParamType.ENUM -> {
                 lore.add("")
-                param.options.forEach { option ->
-                    val marker = if (option == value.toString()) "<green>▶</green>" else "<dark_gray>·</dark_gray>"
-                    lore.add(marker + " <dark_gray>" + option + "</dark_gray>")
+                if (param.options.size >= Editors.PICK_FROM) {
+                    lore.addAll(Editors.pickHint.drop(1))
+                } else {
+                    param.options.forEach { option ->
+                        val marker = if (option == value.toString()) "<green>▶</green>" else "<dark_gray>·</dark_gray>"
+                        lore.add(marker + " <dark_gray>" + option + "</dark_gray>")
+                    }
+                    lore.addAll(Editors.cycleHint)
                 }
-                lore.addAll(Editors.cycleHint)
             }
 
             else -> {
@@ -452,7 +456,20 @@ class ActionDetailMenu(
             }
 
             ParamType.ENUM -> {
-                action.values[param.key] = Editors.cycle(event, param.options, current(param).toString())
+                val value = current(param).toString()
+                if (param.options.size >= Editors.PICK_FROM) {
+                    // 보기가 많은 열거 인자는 고르는 화면으로(2026-10-08).
+                    kr.inmc.core.gui.PickMenu(
+                        monsters, player, param.label + " 고르기", param.options,
+                        icon = { Icon.of(if (it == value) Material.LIME_DYE else Material.GRAY_DYE, "<yellow>$it</yellow>") },
+                        back = { reopen(player) },
+                    ) { picked ->
+                        action.values[param.key] = picked
+                        save(); reopen(player)
+                    }.show()
+                    return
+                }
+                action.values[param.key] = Editors.cycle(event, param.options, value)
                 save(); redraw(player)
             }
 

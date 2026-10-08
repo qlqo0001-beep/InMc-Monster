@@ -140,6 +140,12 @@ class MonsterCommand(private val monsters: Monsters) {
             )
 
             .then(Commands.literal("리로드").requires(::isAdmin).executes { ctx -> reload(ctx.source.sender) })
+            // 서버 안 자동 검증(2026-10-08) — 정의·스킬 레지스트리·소환/태그/정리·수식어·월드 설정·화면.
+            .then(Commands.literal("검증").requires(::isAdmin).executes { ctx ->
+                val player = ctx.source.sender as? org.bukkit.entity.Player
+                if (player == null) monsters.messages.send(ctx.source.sender, "player-only") else com.inmc.monster.verify.Verifier(monsters).run(player)
+                Command.SINGLE_SUCCESS
+            })
 
     // --- handlers --------------------------------------------------------------
 

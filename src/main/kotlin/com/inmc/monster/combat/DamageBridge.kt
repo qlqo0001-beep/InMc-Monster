@@ -24,6 +24,26 @@ class DamageBridge(private val monsters: Monsters) {
 
     private val rng = Random()
 
+    /**
+     * 우리가 Bukkit `damage()` 로 피해를 넣는 중(메인 스레드). 그 호출이 `EntityDamageByEntityEvent` 를 새로 쏘는데
+     * 리스너가 그것을 또 우리 몹의 공격으로 받아 [apply] 를 다시 부르면 끝없이 돈다 — MythicLib 이 없는 서버에서
+     * 커스텀 몹이 플레이어를 때리는 순간 서버가 죽었다(2026-10-08 테섭, StackOverflowError). MythicLib 경로의 막기
+     * (`hasRegisteredAttack`)와 짝이다.
+     */
+    private var applying = 0
+
+    /** 지금 오는 피해 사건이 [apply]·가시가 넣은 것인가 — 리스너는 이때 손대지 않는다. */
+    fun isApplying(): Boolean = applying > 0
+
+    private inline fun guarded(block: () -> Unit) {
+        applying++
+        try {
+            block()
+        } finally {
+            applying--
+        }
+    }
+
     /** Result of a damage calculation, kept so callers can report crits in effects. */
     class Outcome(val amount: Double, val critical: Boolean)
 
@@ -81,7 +101,7 @@ class DamageBridge(private val monsters: Monsters) {
 
         val penetration = effective(mob, StatKeys.ARMOR_PENETRATION).coerceIn(0.0, 100.0)
         val amount = if (penetration <= 0.0) outcome.amount else applyPenetration(target, outcome.amount, penetration)
-        target.damage(amount, mob.entity)
+        guarded { target.damage(amount, mob.entity) }
         afterHit(mob, amount)
     }
 
@@ -132,7 +152,7 @@ class DamageBridge(private val monsters: Monsters) {
         val thorns = mob.stats.getOrZero(StatKeys.THORNS)
         if (thorns > 0.0 && attacker != null && attacker.isValid) {
             val reflected = incoming * thorns / 100.0
-            if (reflected > 0.0) attacker.damage(reflected, mob.entity)
+            if (reflected > 0.0) guarded { attacker.damage(reflected, mob.entity) }
         }
 
         val reduction = mob.stats.getOrZero(StatKeys.DAMAGE_REDUCTION).coerceIn(0.0, 90.0)

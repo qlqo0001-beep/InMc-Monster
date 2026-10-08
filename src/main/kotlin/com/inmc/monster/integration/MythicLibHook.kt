@@ -56,10 +56,8 @@ class MythicLibHook(private val logger: Logger) {
 
     fun setup() {
         reset()
-        if (!Bukkit.getPluginManager().isPluginEnabled("MythicLib")) {
-            logger.info("MythicLib 미설치 - 몬스터 데미지는 자체 계산으로 처리됩니다")
-            return
-        }
+        // 미설치는 Monsters.setupIntegrations 가 다른 선택 연동과 묶어 한 줄로 알린다.
+        if (!Bukkit.getPluginManager().isPluginEnabled("MythicLib")) return
         try {
             val providerClass = PluginClasses.require(
                 "MythicLib", "io.lumine.mythic.lib.api.stat.provider.StatProvider",

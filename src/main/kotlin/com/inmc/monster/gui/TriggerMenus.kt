@@ -217,14 +217,20 @@ class TriggerDetailMenu(
                 buildList {
                     add("<gray>현재: <white>" + trigger.type.label + "</white></gray>")
                     add("<dark_gray>" + trigger.type.description + "</dark_gray>")
-                    add("")
-                    addAll(Editors.optionList(TriggerType.entries.toList(), trigger.type) { it.label })
-                    addAll(Editors.cycleHint)
+                    addAll(Editors.pickHint)
                 },
             ),
         ) { event ->
-            trigger.type = Editors.cycle(event, TriggerType.entries.toList(), trigger.type)
-            save(); redraw(event.whoClicked)
+            // 발동 종류 13개 — 고르는 화면으로(2026-10-08).
+            val player = event.whoClicked as? Player ?: return@set
+            kr.inmc.core.gui.PickMenu(
+                monsters, player, "발동 종류 고르기", TriggerType.entries.toList(),
+                icon = { Icon.of(if (it == trigger.type) Material.LIME_DYE else Material.GRAY_DYE, "<yellow>" + it.label + "</yellow>", listOf("<dark_gray>" + it.description + "</dark_gray>")) },
+                back = { reopen(player) },
+            ) { picked ->
+                trigger.type = picked
+                save(); reopen(player)
+            }.show()
         }
 
         set(

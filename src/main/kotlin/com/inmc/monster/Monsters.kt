@@ -257,7 +257,18 @@ class Monsters(override val plugin: JavaPlugin) : InmcHost {
         economy.setup()
         regions.setup(plugin)
         papi.setup()
+        // 없는 선택 연동은 한 줄로 — 훅마다 한 줄씩 찍으면 켤 때마다 석 줄이 "미설치" 였다.
+        val absent = listOfNotNull(
+            "MythicLib(피해는 자체 계산)".takeUnless { mythicLib.isEnabled },
+            "MythicMobs".takeUnless { mythicMobs.isEnabled },
+            "MagicSpells".takeUnless { magicSpells.isEnabled },
+        ).joinToString(" · ")
+        // 늦게 켜진 플러그인 때문에 다시 돌 때(refreshIntegrations) 같은 말을 반복하지 않는다.
+        if (absent.isNotEmpty() && absent != reportedAbsent) logger.info("선택 연동 없음: $absent — 그 스킬 호출은 무시됩니다")
+        reportedAbsent = absent
     }
+
+    private var reportedAbsent = ""
 
     private fun closeOpenMenus() {
         var closed = 0

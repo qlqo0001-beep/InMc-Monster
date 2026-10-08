@@ -47,6 +47,8 @@ class CombatListener(private val monsters: Monsters) : Listener {
         // without this the handler would intercept its own attack and recurse until the stack
         // ran out.
         if (monsters.mythicLib.hasRegisteredAttack(event)) return
+        // MythicLib 이 없을 때의 같은 막기 — 우리 `damage()` 호출이 쏜 사건이다(DamageBridge.isApplying).
+        if (monsters.damage.isApplying()) return
 
         val damager = event.damager
         val attacker = when (damager) {
