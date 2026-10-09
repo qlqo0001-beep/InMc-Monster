@@ -302,7 +302,7 @@ class MonsterCommand(private val monsters: Monsters) {
             // The model provider is named rather than labelled, because BetterModel and
             // ModelEngine are both supported and an admin needs to know which one actually
             // answered - "모델 O" next to the wrong plugin name is worse than no line at all.
-            appendLine("<gray>연동: MythicLib <white>" + on(monsters.mythicLib.isEnabled) + "</white>  MMOItems <white>" + on(monsters.mmoItems.isEnabled) + "</white>  모델 <white>" + on(monsters.models.isEnabled) + " (" + monsters.models.providerName + ")</white></gray>")
+            appendLine("<gray>연동: MythicLib <white>" + on(monsters.mythicLib.isEnabled) + "</white>  MMOItems <white>" + on(monsters.mmoItems.isEnabled) + "</white>  커스텀아이템 <white>" + on(com.inmc.monster.integration.CustomItemStats.isEnabled) + "</white>  모델 <white>" + on(monsters.models.isEnabled) + " (" + monsters.models.providerName + ")</white></gray>")
             append("<gray>      MythicMobs <white>" + on(monsters.mythicMobs.isEnabled) + "</white>  MagicSpells <white>" + on(monsters.magicSpells.isEnabled) + "</white>  Vault <white>" + on(monsters.economy.isEnabled) + "</white></gray>")
         }
         sender.sendMessage(kr.inmc.core.util.Text.render(text))

@@ -46,7 +46,7 @@ class StatMenu(
                     listOf(
                         "<gray>치명타·관통·회피처럼 바닐라에 없는 값입니다.</gray>",
                         "<gray>이 플러그인의 전투 계산에서만 쓰입니다.</gray>",
-                        "<dark_gray>MMOItems 장비의 같은 이름 스탯과 합산됩니다.</dark_gray>",
+                        "<dark_gray>MMOItems·커스텀아이템 장비의 같은 뜻 스탯과 합산됩니다.</dark_gray>",
                         "",
                         "<yellow>▶ 클릭하여 기본 스탯 보기</yellow>",
                     )

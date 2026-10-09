@@ -64,10 +64,12 @@ class MobManageMenu(
                 }
                 add("")
                 add(
-                    if (monsters.mythicLib.isEnabled) {
-                        "<green>MythicLib 연동 중 - MMOItems 스탯이 적용됩니다.</green>"
-                    } else {
-                        "<yellow>MythicLib 이 없어 장비 스탯은 반영되지 않습니다.</yellow>"
+                    when {
+                        monsters.mythicLib.isEnabled && com.inmc.monster.integration.CustomItemStats.isEnabled ->
+                            "<green>MythicLib·커스텀아이템 연동 중 - 장비 스탯이 적용됩니다.</green>"
+                        monsters.mythicLib.isEnabled -> "<green>MythicLib 연동 중 - MMOItems 스탯이 적용됩니다.</green>"
+                        com.inmc.monster.integration.CustomItemStats.isEnabled -> "<green>커스텀아이템 연동 중 - 장비의 능력치가 적용됩니다.</green>"
+                        else -> "<yellow>MythicLib·커스텀아이템이 없어 장비 스탯은 반영되지 않습니다.</yellow>"
                     },
                 )
             },

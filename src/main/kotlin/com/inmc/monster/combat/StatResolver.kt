@@ -162,7 +162,7 @@ class StatResolver(private val mythicLib: MythicLibHook) {
      * MMOItems", and returning zero is exactly right rather than merely safe.
      */
     fun equipmentBonus(entity: LivingEntity, key: String): Double =
-        mythicLib.equipmentStat(entity, key)
+        mythicLib.equipmentStat(entity, key) + com.inmc.monster.integration.CustomItemStats.equipmentStat(entity, key)
 
     /** Configured stat plus whatever the mob's gear adds. */
     fun effective(entity: LivingEntity, stats: StatMap, key: String): Double =

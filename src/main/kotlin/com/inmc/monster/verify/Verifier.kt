@@ -103,6 +103,14 @@ class Verifier(private val monsters: Monsters) {
                 ok(affixes.all { it.id.isNotBlank() }, "id 가 빈 수식어가 있습니다")
                     ?: ok(affixes.map { it.id.lowercase() }.toSet().size == affixes.size, "id 가 겹치는 수식어가 있습니다")
             },
+            Check("커스텀아이템 장비 능력치 — 손에 든 커스텀아이템 무기의 공격력을 읽는다(2026-10-09)") { _, p ->
+                if (!com.inmc.monster.integration.CustomItemStats.isEnabled) return@Check "$SKIP 커스텀아이템이 없습니다"
+                val stats = kr.inmc.core.integration.CustomItemHook.stats(p.inventory.itemInMainHand)
+                if (stats.isEmpty()) return@Check "$SKIP 커스텀아이템 무기를 손에 들고 돌리면 읽는지 봅니다"
+                val expected = (stats["attack-damage"] ?: 0.0) + (stats["damage-bonus"] ?: 0.0)
+                val got = com.inmc.monster.integration.CustomItemStats.equipmentStat(p, "ATTACK_DAMAGE")
+                ok(got == expected, "ATTACK_DAMAGE 보너스 $got (아이템 능력치 합 $expected 이어야)")
+            },
             Check("월드 설정 — 지금 월드의 설정을 읽는다") { m, p ->
                 ok(m.worlds.of(p.world).world.equals(p.world.name, ignoreCase = true) || m.worlds.all().isEmpty(), "'${p.world.name}' 설정이 ${m.worlds.of(p.world).world} 로 읽힙니다")
             },

@@ -73,6 +73,7 @@
 | 플러그인 | 하는 일 |
 |---|---|
 | MythicLib / MMOItems | 몬스터가 입은 MMOItems 장비의 스탯이 실제 전투에 적용 |
+| 커스텀아이템(inmc-customitems) | 몬스터가 입은 커스텀아이템 장비의 능력치(공격력·치명타·흡혈·발사체·피해 감소·회피·가시·재생·쿨타임)가 적용 — MythicLib 와 둘 다 있으면 둘 다(2026-10-09) |
 | BetterModel / ModelEngine R4 | 커스텀 모델 |
 | ItemsAdder · Nexo · Oraxen · EcoItems | 커스텀 아이템·블록 |
 | WorldGuard · Lands | 지역 기반 스폰 조건 |

@@ -113,6 +113,7 @@ class StatusMenu(monsters: Monsters) : Menu(monsters, 54, TITLE) {
                 Material.COMMAND_BLOCK, "<yellow>연동 상태</yellow>",
                 buildList {
                     add(line("MythicLib", monsters.mythicLib.isEnabled, "MMOItems 장비 스탯 적용"))
+                    add(line("커스텀아이템", com.inmc.monster.integration.CustomItemStats.isEnabled, "장비 능력치 적용"))
                     add(line("MMOItems", monsters.mmoItems.isEnabled, "아이템 참조"))
                     add(line("ItemsAdder 계열", monsters.customItems.isEnabled, "커스텀 아이템"))
                     add(line("모델 (" + monsters.models.providerName + ")", monsters.models.isEnabled, "몬스터 모델 표시"))
