@@ -44,7 +44,7 @@ class DeathHandler(private val monsters: Monsters) {
 
         if (monsters.config.display.announceDeath && killer != null && definition != null) {
             val ph = Ph.of().player(kr.inmc.core.integration.TitleForgeNames.displayName(killer.uniqueId, killer.name)).mob(mob.displayName).location(location).level(mob.level)
-            monsters.broadcast(monsters.messages.raw("mob-death-announce"), ph)
+            monsters.broadcast(monsters.messages.raw("mob-death-announce"), ph, actor = killer)
         }
 
         monsters.api.fireDeathEvent(mob, killer)

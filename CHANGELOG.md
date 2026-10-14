@@ -2,6 +2,18 @@
 
 ---
 
+## 미배포 — 투명·PlaceholderAPI 목록(2026-10-10)
+
+CMI 대체(inmc-essentials)와 맞추는 것. 계획 `~/.claude/plans/inmc-essentials.md`.
+
+- **투명(core `Vanish`)**: 처치 공지(`mob-death-announce`)·드랍 공지(`drop-announce`)·등장 조건의 BROADCAST 메시지는 이름이 나오는 사람(처치한 사람·받은 사람·
+  조건을 채운 사람)이 투명이면 그를 볼 수 있는 사람에게만. `Monsters.broadcast` 에 `actor` 인자(기본 null — 리스폰 예고처럼 사람이 없는 공지는 그대로).
+  죽음 행동의 BROADCAST 는 `{플레이어}` 가 받는 사람 자신이라 그대로.
+- PlaceholderAPI `getPlaceholders()` — `/papi info monster` 에 고정 키 전부와 지금 있는 몹마다 `active_<몹>`, 등장 조건마다
+  `trigger_progress_<조건>`·`trigger_cooldown_<조건>`, `tag_<태그>` 는 **살아 있는 몹이 실제로 다는 태그**만(몹 정의의 첫 태그 · 스포너의 태그, 비면
+  `spawner:<id>` · `trigger:<조건>` — 정의의 둘째 태그부터는 몹에 달리지 않아 늘 0 이었다). 고정 키와 겹치면 한 번만. 식별자·키는 그대로.
+  목록 만들기는 `integration/MonsterPlaceholders`(PlaceholderAPI 없이 시험 — `MonsterPlaceholdersTest`).
+
 ## 미배포 — 커스텀아이템 장비 능력치(2026-10-09)
 
 - `integration/CustomItemStats` — 몹이 입고 든 커스텀아이템 장비의 능력치를 core `CustomItemHook.stats` 로 읽어 우리 스탯 키로(공격력=attack-damage+damage-bonus ·

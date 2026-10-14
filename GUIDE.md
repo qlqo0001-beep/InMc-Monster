@@ -78,7 +78,7 @@
 | ItemsAdder · Nexo · Oraxen · EcoItems | 커스텀 아이템·블록 |
 | WorldGuard · Lands | 지역 기반 스폰 조건 |
 | Vault | 처치 보상 돈 |
-| PlaceholderAPI | `%monster_active_total%` · `%monster_nearest%` · `%monster_nearest_distance%` · `%monster_nearest_health%` · `%monster_trigger_progress_<조건>%` 등 |
+| PlaceholderAPI | `%monster_active_total%` · `%monster_nearest%` · `%monster_nearest_distance%` · `%monster_nearest_health%` · `%monster_trigger_progress_<조건>%` 등 — 전체 목록은 `/papi info monster` |
 | 업적(inmc-achievements) | 커스텀 몬스터 처치가 업적 조건이 됩니다 — 이 플러그인 쪽 설정은 필요 없습니다 |
 
 ## 주의할 점
@@ -88,3 +88,4 @@
 - 커스텀 몬스터는 **재시작을 넘어 살아남지 않습니다.**
 - 장비 드랍 확률 기본값은 0% 입니다.
 - jar 을 바꿀 때는 서버를 끄고 바꾸세요.
+- 처치·드랍·등장 조건(BROADCAST) 공지는 이름이 나오는 사람이 **투명이면** 그를 볼 수 있는 사람에게만 갑니다.

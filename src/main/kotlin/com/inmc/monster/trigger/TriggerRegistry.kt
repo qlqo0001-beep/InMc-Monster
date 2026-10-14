@@ -209,7 +209,7 @@ class TriggerRegistry(private val monsters: Monsters) {
                 ),
             )
 
-            MessageStyle.BROADCAST -> monsters.broadcast(trigger.message, ph)
+            MessageStyle.BROADCAST -> monsters.broadcast(trigger.message, ph, actor = player)
         }
     }
 

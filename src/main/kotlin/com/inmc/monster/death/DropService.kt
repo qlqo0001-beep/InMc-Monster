@@ -231,8 +231,9 @@ class DropService(private val monsters: Monsters) {
             .item(drop.entry.label())
             .location(mob.entity.location)
         val message = monsters.messages.raw("drop-announce")
+        // 받은 사람이 투명이면 그를 볼 수 있는 사람에게만(core `Vanish`) — 공지가 투명을 들키게 하지 않는다.
         org.bukkit.Bukkit.getOnlinePlayers().forEach { viewer ->
-            viewer.sendMessage(Text.render(message, ph, viewer))
+            if (kr.inmc.core.integration.Vanish.canSee(viewer, receiver)) viewer.sendMessage(Text.render(message, ph, viewer))
         }
     }
 

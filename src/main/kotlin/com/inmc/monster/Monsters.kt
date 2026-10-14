@@ -453,9 +453,14 @@ class Monsters(override val plugin: JavaPlugin) : InmcHost {
 
     // --- messaging helpers ------------------------------------------------------
 
-    fun broadcast(raw: String, ph: Ph?) {
+    /**
+     * 서버 전체에 알린다. [actor] 는 공지에 이름이 나오는 사람 — 투명이면 그를 볼 수 있는 사람에게만 간다(core `Vanish`,
+     * 2026-10-10). 공지가 투명을 들키게 하지 않는다.
+     */
+    fun broadcast(raw: String, ph: Ph?, actor: org.bukkit.entity.Player? = null) {
         if (raw.isBlank()) return
         for (player in Bukkit.getOnlinePlayers()) {
+            if (actor != null && !kr.inmc.core.integration.Vanish.canSee(player, actor)) continue
             player.sendMessage(Text.render(raw, ph, player))
         }
     }

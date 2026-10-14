@@ -59,6 +59,17 @@ private class MonsterExpansion(private val monsters: Monsters) : PlaceholderExpa
 
     override fun persist(): Boolean = true
 
+    /**
+     * `/papi info` 의 목록(2026-10-10) — 고정 키 전부와 **지금 있는 것마다** `active_<몹>` · `tag_<태그>`(실제로 달리는 태그만) ·
+     * `trigger_progress_<조건>` · `trigger_cooldown_<조건>`. 만드는 법은 [MonsterPlaceholders]. [onRequest] 에 키를 더하면 거기도 더한다.
+     */
+    override fun getPlaceholders(): List<String> = MonsterPlaceholders.placeholders(
+        identifier,
+        mobs = monsters.mobs.all().map { it.id to it.tags.firstOrNull() },
+        spawners = monsters.spawners.all().map { it.id to it.tag },
+        triggerIds = monsters.triggers.all().map { it.id },
+    )
+
     override fun onRequest(player: OfflinePlayer?, params: String): String? {
         val online = player as? Player ?: player?.uniqueId?.let { Bukkit.getPlayer(it) }
 
