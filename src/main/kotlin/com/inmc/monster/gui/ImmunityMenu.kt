@@ -6,10 +6,13 @@ import com.inmc.monster.mob.MobDefinition
 import kr.inmc.core.gui.Editors
 import kr.inmc.core.gui.Icon
 import kr.inmc.core.util.Numbers
+import kr.inmc.core.util.PotionEffects
 import kr.inmc.core.util.Text
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause
+import org.bukkit.inventory.meta.PotionMeta
+import org.bukkit.potion.PotionEffectType
 
 /**
  * What the mob shrugs off.
@@ -62,32 +65,35 @@ class ImmunityMenu(
                     if (immunities.potions.isEmpty()) {
                         add("<gray>면역 포션이 없습니다.</gray>")
                     } else {
-                        immunities.potions.forEach { add("<dark_gray> · " + it + "</dark_gray>") }
+                        immunities.potions.forEach { add("<dark_gray> · </dark_gray><white>" + PotionEffects.lang(it) + "</white>") }
                     }
                     add("")
                     add("<gray>여기 적힌 효과는 이 몬스터에게 걸리지 않습니다.</gray>")
                     add("")
-                    add("<yellow>▶ 클릭</yellow>")
+                    add("<yellow>▶ 클릭: 효과 고르기(여러 개)</yellow>")
+                    if (immunities.potions.isNotEmpty()) add("<red>▶ Shift+우클릭: 모두 지우기</red>")
                 },
             ),
         ) { event ->
             val player = event.whoClicked as? Player ?: return@set
-            Editors.promptText(
-                monsters.prompts, player, "면역시킬 포션 효과를 입력하세요. (쉼표로 여러 개)",
-                listOf(
-                    "<gray>예: <white>POISON, WITHER, SLOWNESS</white></gray>",
-                    "<gray>'없음' 을 입력하면 모두 지웁니다.</gray>",
-                ),
-                reopen = { reopen(player) },
-            ) { input ->
-                immunities.potions = if (input.trim() == "없음") {
-                    linkedSetOf()
-                } else {
-                    input.split(',').map { it.trim().uppercase() }.filter { it.isNotEmpty() }
-                        .toCollection(linkedSetOf())
-                }
-                save()
+            if (event.isShiftClick && event.isRightClick) {
+                immunities.potions.clear()
+                save(); redraw(player)
+                return@set
             }
+            // 효과는 고르는 화면으로(2026-10-14 — 쉼표로 영어 이름을 치던 것). 저장은 전처럼 대문자 이름(`blocksPotion` 이 견준다).
+            val options = PotionEffects.all()
+            kr.inmc.core.gui.PickMenu(
+                monsters, player, "<dark_gray>포션 효과 면역</dark_gray>", options,
+                icon = ::potionIcon,
+                multi = true,
+                selected = { options.filter { potionKey(it) in immunities.potions }.toSet() },
+                back = { reopen(player) },
+            ) { type ->
+                val key = potionKey(type)
+                if (!immunities.potions.remove(key)) immunities.potions.add(key)
+                save()
+            }.show()
         }
 
         set(
@@ -191,6 +197,12 @@ class ImmunityMenu(
             "void" -> immunities.voidDamage = value
         }
     }
+
+    private fun potionKey(type: PotionEffectType): String = type.key.value().uppercase()
+
+    private fun potionIcon(type: PotionEffectType): org.bukkit.inventory.ItemStack =
+        Icon.of(Material.POTION, "<yellow>" + PotionEffects.lang(type) + "</yellow>", listOf("<dark_gray>" + PotionEffects.id(type) + "</dark_gray>"))
+            .also { stack -> stack.editMeta(PotionMeta::class.java) { meta -> runCatching { meta.color = type.color } } }
 
     private fun save() = monsters.mobs.markDirty(definition)
 

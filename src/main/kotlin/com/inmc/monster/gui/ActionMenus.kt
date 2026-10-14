@@ -10,6 +10,8 @@ import kr.inmc.core.gui.Editors
 import kr.inmc.core.gui.Icon
 import kr.inmc.core.gui.Paging
 import kr.inmc.core.util.Numbers
+import kr.inmc.core.util.Particles
+import kr.inmc.core.util.PotionEffects
 import kr.inmc.core.util.Text
 import org.bukkit.Material
 import org.bukkit.entity.Player
@@ -382,7 +384,7 @@ class ActionDetailMenu(
         val isDefault = !action.values.containsKey(param.key)
         val lore = mutableListOf<String>()
         lore.add(
-            "<gray>현재: <yellow>" + display(value) + "</yellow>" +
+            "<gray>현재: <yellow>" + shown(param, value) + "</yellow>" +
                 (if (isDefault) " <dark_gray>(기본값)</dark_gray>" else "") + "</gray>",
         )
         if (param.description.isNotBlank()) lore.add("<dark_gray>" + param.description + "</dark_gray>")
@@ -395,6 +397,8 @@ class ActionDetailMenu(
                 lore.add("<yellow>▶ 좌클릭 +1 / 우클릭 -1   Shift 로 10배</yellow>")
                 lore.add("<yellow>▶ 숫자키: 직접 입력</yellow>")
             }
+
+            ParamType.PARTICLE, ParamType.POTION -> lore.addAll(Editors.pickHint)
 
             ParamType.BOOL -> {
                 lore.add("")
@@ -473,6 +477,21 @@ class ActionDetailMenu(
                 save(); redraw(player)
             }
 
+            // 입자·물약 효과는 고르는 화면으로(2026-10-14 — 채팅에 영어 이름을 치던 것). 저장은 전처럼 대문자 이름(`Fx.particle`·`Fx.potion` 이 읽는다).
+            ParamType.PARTICLE -> kr.inmc.core.gui.ParticlePickMenu(
+                monsters, monsters.plugin, player, param.label + " 고르기", current(param).toString(), back = { reopen(player) },
+            ) { picked ->
+                action.values[param.key] = picked.name
+                save(); reopen(player)
+            }.show()
+
+            ParamType.POTION -> kr.inmc.core.gui.PotionPickMenu(
+                monsters, player, param.label + " 고르기", current(param).toString(), back = { reopen(player) },
+            ) { picked ->
+                action.values[param.key] = PotionEffects.id(picked).uppercase()
+                save(); reopen(player)
+            }.show()
+
             else -> Editors.promptText(
                 monsters.prompts, player, param.label + " 값을 입력하세요.",
                 hintsFor(param),
@@ -485,9 +504,7 @@ class ActionDetailMenu(
     }
 
     private fun hintsFor(param: SkillParam): List<String> = when (param.type) {
-        ParamType.PARTICLE -> listOf("<gray>예: <white>FLAME, SOUL, EXPLOSION</white></gray>")
         ParamType.SOUND -> listOf("<gray>예: <white>ENTITY_GENERIC_EXPLODE</white></gray>")
-        ParamType.POTION -> listOf("<gray>예: <white>SLOWNESS, POISON, WITHER</white></gray>")
         ParamType.MOB_ID -> listOf(
             "<gray>등록된 몬스터: " + monsters.mobs.ids().take(8).joinToString(", ") + "</gray>",
         )
@@ -512,6 +529,13 @@ class ActionDetailMenu(
         is Double -> Numbers.chance(value)
         is Number -> value.toString()
         else -> value.toString().ifBlank { "(비어 있음)" }
+    }
+
+    /** 로어의 "현재" 값 — 입자·물약 효과는 한국어 이름으로. */
+    private fun shown(param: SkillParam, value: Any): String = when (param.type) {
+        ParamType.PARTICLE -> Particles.name(value.toString())
+        ParamType.POTION -> PotionEffects.lang(value.toString())
+        else -> display(value)
     }
 
     private fun save() = monsters.mobs.markDirty(definition)

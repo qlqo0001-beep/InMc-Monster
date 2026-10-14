@@ -2,6 +2,14 @@
 
 ---
 
+## 미배포 — 입자·물약 고르기(2026-10-14)
+
+- 스킬 수치(`SkillParamMenu`)·사망/페이즈 동작(`ActionDetailMenu`)의 **파티클·포션 효과** 인자가 채팅에 영어 이름을 치는 대신 core `ParticlePickMenu`·
+  `PotionPickMenu` 를 연다(한국어 이름 · 우클릭 미리보기). 로어의 "현재" 도 한국어 이름(`Particles.name` · `PotionEffects.lang`).
+  저장은 전처럼 **대문자 이름**(`FLAME` · `SLOWNESS` — `Fx.particle`·`Fx.potion` 이 읽는다). 입자는 이미 `Fx.spawn` 이 자료를 채워 뿌리므로 그대로.
+- 면역의 **포션 효과 면역**이 쉼표 목록 입력 대신 여러 개 고르는 화면(core `PickMenu`, 효과 색 물약 · 한국어 이름) — Shift+우클릭은 모두 지우기(전의 `없음`).
+- 손에 든 아이템을 읽는 관리 화면은 원래 없다 — 드랍·장비 화면은 칸에 올리는 방식 그대로.
+
 ## 미배포 — 투명·PlaceholderAPI 목록(2026-10-10)
 
 CMI 대체(inmc-essentials)와 맞추는 것. 계획 `~/.claude/plans/inmc-essentials.md`.
